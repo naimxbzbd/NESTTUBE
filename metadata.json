@@ -1,0 +1,6 @@
+{
+  "name": "NESTTUBE",
+  "description": "YouTube client app - NESTTUBE by Naim Xbz",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
