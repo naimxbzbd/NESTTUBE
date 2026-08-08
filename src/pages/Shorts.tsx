@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ThumbsUp, ThumbsDown, MessageSquare, Share2, MoreHorizontal } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, handleThumbnailError } from '../lib/utils';
 import { searchVideos } from '../services/youtube';
 
 export function Shorts() {
@@ -85,7 +85,7 @@ export function Shorts() {
               <button className="p-3 bg-black/40 hover:bg-black/60 rounded-full transition-colors"><MoreHorizontal className="w-6 h-6" /></button>
             </div>
             <div className="w-10 h-10 bg-white/20 rounded-md mt-2 shrink-0 border border-white/20 overflow-hidden">
-               <img src={currentVideo.snippet.thumbnails?.default?.url} className="w-full h-full object-cover" alt="Thumbnail" />
+               <img src={currentVideo.snippet.thumbnails?.default?.url} className="w-full h-full object-cover" alt="Thumbnail" onError={handleThumbnailError} />
             </div>
           </div>
         </div>

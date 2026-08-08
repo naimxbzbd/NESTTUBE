@@ -51,7 +51,14 @@ export interface UserNotification {
   avatarUrl?: string;
 }
 
-interface UserStoreState {
+export interface UserAccount {
+  email: string;
+  password?: string;
+  name: string;
+  isPremium: boolean;
+}
+
+export interface UserStoreState {
   // Subscriptions
   subscribedChannels: ChannelSubscription[];
   toggleSubscribe: (channel: ChannelSubscription) => void;
@@ -96,6 +103,19 @@ interface UserStoreState {
   // Stats / Watch time
   watchTimeMinutesToday: number;
   addWatchTime: (minutes: number) => void;
+
+  // User Auth
+  accounts: UserAccount[];
+  currentUser: UserAccount | null;
+  register: (email: string, password: string, name: string) => boolean;
+  login: (email: string, password: string) => boolean;
+  logout: () => void;
+  applyCoupon: (couponCode: string) => boolean;
+
+  // Premium / Ad-Free Membership
+  isPremium: boolean;
+  togglePremium: () => void;
+  setIsPremium: (isPremium: boolean) => void;
 }
 
 export const useUserStore = create<UserStoreState>()(
@@ -329,6 +349,54 @@ export const useUserStore = create<UserStoreState>()(
       addWatchTime: (minutes) => {
         set((state) => ({ watchTimeMinutesToday: state.watchTimeMinutesToday + minutes }));
       },
+
+      accounts: [],
+      currentUser: null,
+      register: (email, password, name) => {
+        const { accounts } = get();
+        if (accounts.some(a => a.email === email)) return false;
+        
+        const newUser = { email, password, name, isPremium: false };
+        set({
+          accounts: [...accounts, newUser],
+          currentUser: newUser,
+          isPremium: false
+        });
+        return true;
+      },
+      login: (email, password) => {
+        const { accounts } = get();
+        const user = accounts.find(a => a.email === email && a.password === password);
+        if (user) {
+          set({ currentUser: user, isPremium: user.isPremium });
+          return true;
+        }
+        return false;
+      },
+      logout: () => {
+        set({ currentUser: null, isPremium: false });
+      },
+      applyCoupon: (couponCode) => {
+        const { currentUser, accounts } = get();
+        if (!currentUser) return false;
+        
+        // Let's say valid coupon is 'PREMIUM2026' or 'FREEPREMIUM'
+        const validCoupons = ['PREMIUM2026', 'FREEPREMIUM'];
+        if (validCoupons.includes(couponCode.toUpperCase())) {
+          const updatedUser = { ...currentUser, isPremium: true };
+          set({
+            currentUser: updatedUser,
+            isPremium: true,
+            accounts: accounts.map(a => a.email === currentUser.email ? updatedUser : a)
+          });
+          return true;
+        }
+        return false;
+      },
+
+      isPremium: false,
+      togglePremium: () => set((state) => ({ isPremium: !state.isPremium })),
+      setIsPremium: (isPremium: boolean) => set({ isPremium }),
     }),
     {
       name: 'nesttube_user_store_v1',

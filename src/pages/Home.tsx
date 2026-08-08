@@ -3,7 +3,9 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, RotateCw, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VideoCard } from '../components/video/VideoCard';
+import { NativeAdCard } from '../components/ads/NativeAdCard';
 import { WatchHistorySection } from '../components/history/WatchHistorySection';
+import { RecommendedPlaylistsSection } from '../components/home/RecommendedPlaylistsSection';
 import { cn } from '../lib/utils';
 import { fetchCategoryVideos } from '../services/youtube';
 import { useChannelAvatars } from '../hooks/useChannelAvatars';
@@ -40,6 +42,18 @@ export function Home() {
     setRefreshSeed(Date.now());
     setTimeout(() => setIsRotating(false), 600);
   };
+
+  useEffect(() => {
+    const handleRefreshEvent = () => {
+      handleRefresh();
+      // Reset category to All on logo click if we want, but let's keep it simple
+      if (activeCategory !== 'All') {
+        setActiveCategory('All');
+      }
+    };
+    window.addEventListener('refresh-home', handleRefreshEvent);
+    return () => window.removeEventListener('refresh-home', handleRefreshEvent);
+  }, [activeCategory]);
 
   const {
     data,
@@ -143,6 +157,7 @@ export function Home() {
       {/* Video Grid */}
       <div className="p-3 sm:p-6">
         <WatchHistorySection />
+        {activeCategory === 'All' && <RecommendedPlaylistsSection />}
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -169,19 +184,22 @@ export function Home() {
                   {videos.map((video: any, index: number) => {
                     const id = typeof video.id === 'string' ? video.id : video.id.videoId;
                     if (!id) return null;
+                    const showAdAfter = index > 0 && index % 8 === 0;
                     return (
-                      <VideoCard
-                        key={`${id}-${index}`}
-                        id={id}
-                        title={video.snippet.title}
-                        channelName={video.snippet.channelTitle}
-                        channelId={video.snippet.channelId}
-                        views={video.statistics?.viewCount}
-                        publishedAt={video.snippet.publishedAt}
-                        duration={video.contentDetails?.duration}
-                        thumbnailUrl={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url}
-                        channelAvatarUrl={video.snippet.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
-                      />
+                      <React.Fragment key={`${id}-${index}`}>
+                        {showAdAfter && <NativeAdCard index={Math.floor(index / 8)} />}
+                        <VideoCard
+                          id={id}
+                          title={video.snippet.title}
+                          channelName={video.snippet.channelTitle}
+                          channelId={video.snippet.channelId}
+                          views={video.statistics?.viewCount}
+                          publishedAt={video.snippet.publishedAt}
+                          duration={video.contentDetails?.duration}
+                          thumbnailUrl={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url}
+                          channelAvatarUrl={video.snippet.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
+                        />
+                      </React.Fragment>
                     );
                   })}
                 </div>

@@ -2,9 +2,12 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Play, Shuffle, Trash2, Clock, ThumbsUp, Lock, ListVideo, ArrowLeft } from 'lucide-react';
 import { useUserStore, VideoItem } from '../store/useUserStore';
+import { useNavigate } from 'react-router-dom';
+import { handleThumbnailError } from '../lib/utils';
 
 export function PlaylistView() {
   const { type } = useParams<{ type: string }>();
+  const navigate = useNavigate();
   const { watchLaterVideos, likedVideos, playlists, deletePlaylist, removeVideoFromPlaylist, toggleWatchLater, toggleLikeVideo } = useUserStore();
 
   let title = 'Playlist';
@@ -47,7 +50,7 @@ export function PlaylistView() {
         {/* Thumbnail Preview Banner */}
         <div className="aspect-video w-full rounded-2xl bg-neutral-800 flex items-center justify-center overflow-hidden relative shadow-md">
           {videos.length > 0 && videos[0].thumbnailUrl ? (
-            <img src={videos[0].thumbnailUrl} alt={title} className="w-full h-full object-cover" />
+            <img src={videos[0].thumbnailUrl} alt={title} className="w-full h-full object-cover" onError={handleThumbnailError} />
           ) : (
             <div className="flex flex-col items-center gap-2 text-neutral-400">
               {icon}
@@ -82,7 +85,10 @@ export function PlaylistView() {
             </Link>
             {isCustom && (
               <button
-                onClick={() => deletePlaylist(customPlaylistId)}
+                onClick={() => {
+                  deletePlaylist(customPlaylistId);
+                  navigate('/library');
+                }}
                 className="p-2.5 rounded-full hover:bg-red-500/10 text-red-500 transition-colors"
                 title="Delete Playlist"
               >
@@ -116,7 +122,7 @@ export function PlaylistView() {
               {/* Video Thumbnail */}
               <Link to={`/watch/${item.id}`} className="w-40 sm:w-48 aspect-video rounded-xl overflow-hidden shrink-0 bg-neutral-800 relative block">
                 {item.thumbnailUrl && (
-                  <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" onError={handleThumbnailError} />
                 )}
                 {item.duration && (
                   <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">

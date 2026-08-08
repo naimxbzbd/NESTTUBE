@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { VideoCard } from '../components/video/VideoCard';
 import { CheckCircle2, Search as SearchIcon, ChevronRight } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, handleThumbnailError } from '../lib/utils';
 import { getChannelDetails, searchVideos } from '../services/youtube';
 import { formatViewCount, formatPublishedAt } from '../lib/formatters';
 
@@ -45,7 +45,7 @@ export function Channel() {
       {/* Banner */}
       <div className="w-full h-32 md:h-48 lg:h-64 bg-gradient-to-r from-purple-900 via-indigo-800 to-blue-900 relative object-cover overflow-hidden">
         {brandingSettings?.image?.bannerExternalUrl && (
-          <img src={brandingSettings.image.bannerExternalUrl} alt="Banner" className="w-full h-full object-cover" />
+          <img src={brandingSettings.image.bannerExternalUrl} alt="Banner" className="w-full h-full object-cover" onError={handleThumbnailError} />
         )}
       </div>
 
@@ -54,7 +54,7 @@ export function Channel() {
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
           <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-purple-600 shrink-0 overflow-hidden">
             {snippet.thumbnails?.medium?.url && (
-              <img src={snippet.thumbnails.medium.url} alt={snippet.title} className="w-full h-full object-cover" />
+              <img src={snippet.thumbnails.medium.url} alt={snippet.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
             )}
           </div>
           

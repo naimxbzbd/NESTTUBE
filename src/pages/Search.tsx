@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { cn } from '../lib/utils';
+import { cn, handleThumbnailError } from '../lib/utils';
 import { MoreVertical, ListFilter } from 'lucide-react';
 import { searchVideos } from '../services/youtube';
 import { formatPublishedAt } from '../lib/formatters';
@@ -82,6 +82,7 @@ export function Search() {
                          src={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url} 
                          alt={video.snippet.title} 
                          className="w-full h-full object-cover" 
+                         onError={handleThumbnailError}
                        />
                     </Link>
                     <div className="flex flex-col flex-1 py-1 pr-8 relative">
@@ -97,6 +98,7 @@ export function Search() {
                              src={channelAvatarMap[video.snippet.channelId] || getFallbackChannelAvatar(video.snippet.channelTitle, video.snippet.channelId)} 
                              alt={video.snippet.channelTitle} 
                              className="w-full h-full object-cover group-hover/channel:scale-110 transition-transform" 
+                             onError={handleThumbnailError}
                            />
                          </div>
                          <div className="text-xs text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-1 font-medium">

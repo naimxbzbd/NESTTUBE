@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, handleThumbnailError } from '../lib/utils';
 import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
 import { addToWatchHistory } from '../lib/watchHistory';
@@ -12,20 +12,25 @@ import { ShareModal } from '../components/video/ShareModal';
 import { useMiniPlayer } from '../context/MiniPlayerContext';
 import { Tooltip } from '../components/ui/Tooltip';
 import { getFallbackChannelAvatar } from '../lib/avatar';
+import { AdContainer } from '../components/ads/AdContainer';
+import { useAdsterra } from '../context/AdsterraContext';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const playlistIds = searchParams.get('playlistIds');
+
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [newCommentText, setNewCommentText] = useState('');
-  const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [downloadToast, setDownloadToast] = useState(false);
   const [isAutoplay, setIsAutoplay] = useState(true);
   const [autoplayToast, setAutoplayToast] = useState<string | null>(null);
   const [floatingToast, setFloatingToast] = useState(false);
 
   const { openMiniPlayer } = useMiniPlayer();
+  const { incrementWatchCount } = useAdsterra();
 
   const toggleAutoplay = () => {
     setIsAutoplay((prev) => {
@@ -93,8 +98,10 @@ export function Watch() {
 
       // Increment today's watch time by 2 minutes on video load
       addWatchTime(2);
+      incrementWatchCount();
     }
-  }, [video, id, addWatchTime]);
+  }, [video, id, addWatchTime, incrementWatchCount]);
+
 
   if (videoLoading) {
     return (
@@ -171,93 +178,29 @@ export function Watch() {
       )}
 
       {/* Primary Column - Video & Details */}
-      <div className={cn("flex-1 flex flex-col gap-4", isTheaterMode ? "w-full" : "lg:max-w-[calc(100%-400px)]")}>
+      <div className={cn("flex-1 flex flex-col gap-4", "lg:max-w-[calc(100%-400px)]")}>
         
         {/* Video Player Box */}
         <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden relative shadow-2xl group">
           <iframe
-            src={`https://www.youtube.com/embed/${id}?autoplay=${isAutoplay ? '1' : '0'}&rel=0`}
+            src={`https://www.youtube.com/embed/${id}?autoplay=${isAutoplay ? '1' : '0'}&rel=0${playlistIds ? `&playlist=${playlistIds}` : ''}`}
             title={video.snippet.title}
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
-          <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <Tooltip content={isAutoplay ? 'Autoplay is ON' : 'Autoplay is OFF'} position="bottom">
-              <button
-                onClick={toggleAutoplay}
-                className={cn(
-                  "px-3 py-2 rounded-xl backdrop-blur-md flex items-center gap-2 text-xs font-bold transition-all shadow-lg hover:scale-105 cursor-pointer",
-                  isAutoplay 
-                    ? "bg-black/80 hover:bg-black/95 text-white" 
-                    : "bg-black/60 hover:bg-black/80 text-white/70"
-                )}
-              >
-                <span className="text-[11px] font-semibold">Autoplay</span>
-                <div className={cn(
-                  "w-7 h-4 rounded-full p-0.5 transition-colors relative flex items-center",
-                  isAutoplay ? "bg-blue-600" : "bg-neutral-600"
-                )}>
-                  <div className={cn(
-                    "w-3 h-3 rounded-full bg-white transition-transform flex items-center justify-center shadow-xs",
-                    isAutoplay ? "translate-x-3" : "translate-x-0"
-                  )}>
-                    {isAutoplay ? <Play className="w-1.5 h-1.5 text-blue-600 fill-blue-600 ml-0.5" /> : <Pause className="w-1.5 h-1.5 text-neutral-600 fill-neutral-600" />}
-                  </div>
-                </div>
-              </button>
-            </Tooltip>
-
-            <Tooltip content="Open Floating Player" position="bottom">
-              <button
-                onClick={() => {
-                  if (video && id) {
-                    openMiniPlayer({
-                      id,
-                      title: video.snippet.title,
-                      channelTitle: video.snippet.channelTitle,
-                    });
-                    setFloatingToast(true);
-                    setTimeout(() => setFloatingToast(false), 2500);
-                  }
-                }}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black/90 text-white backdrop-blur-md flex items-center gap-1.5 text-xs font-bold transition-all shadow-lg hover:scale-105 cursor-pointer"
-              >
-                <PictureInPicture2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Floating Player</span>
-              </button>
-            </Tooltip>
-
-            <Tooltip content="Share video" position="bottom">
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black/90 text-white backdrop-blur-md flex items-center gap-1.5 text-xs font-bold transition-all shadow-lg hover:scale-105 cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Share</span>
-              </button>
-            </Tooltip>
-
-            <Tooltip content={isTheaterMode ? 'Exit Theater Mode' : 'Theater Mode'} position="bottom">
-              <button
-                onClick={() => setIsTheaterMode(!isTheaterMode)}
-                className="p-2 rounded-xl bg-black/70 hover:bg-black/90 text-white backdrop-blur-md transition-all shadow-lg hover:scale-105 cursor-pointer"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
         </div>
 
+
         {/* Video Title */}
-        <h1 className="text-xl sm:text-2xl font-extrabold text-neutral-900 dark:text-white leading-tight">
+        <h1 className="text-xl font-bold text-[#0f0f0f] dark:text-[#f1f1f1] leading-tight mt-3">
           {video.snippet.title}
         </h1>
 
         {/* Video Actions & Channel Info */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-200 dark:border-white/10 pb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-2">
           <div className="flex items-center gap-3">
-            <Link to={`/channel/${video.snippet.channelId}`} className="w-11 h-11 rounded-full shrink-0 overflow-hidden bg-neutral-200 dark:bg-neutral-800 shadow-md border border-neutral-200 dark:border-white/10 group">
+            <Link to={`/channel/${video.snippet.channelId}`} className="w-10 h-10 rounded-full shrink-0 overflow-hidden bg-neutral-200 dark:bg-neutral-800 group">
               <img
                 src={
                   channelData?.items?.[0]?.snippet?.thumbnails?.medium?.url ||
@@ -265,135 +208,133 @@ export function Watch() {
                   getFallbackChannelAvatar(video.snippet.channelTitle, video.snippet.channelId)
                 }
                 alt={video.snippet.channelTitle}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                className="w-full h-full object-cover"
+                onError={handleThumbnailError}
               />
             </Link>
-            <div className="flex flex-col">
-              <Link to={`/channel/${video.snippet.channelId}`} className="font-bold flex items-center gap-1 hover:text-blue-500 text-neutral-900 dark:text-white text-sm">
+            <div className="flex flex-col mr-3">
+              <Link to={`/channel/${video.snippet.channelId}`} className="font-semibold flex items-center gap-1 text-[#0f0f0f] dark:text-[#f1f1f1] text-base">
                 {video.snippet.channelTitle}
-                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                <CheckCircle2 className="w-[14px] h-[14px] text-[#606060] dark:text-[#aaaaaa]" />
               </Link>
-              <div className="text-xs text-neutral-500 dark:text-white/60">1.25M subscribers</div>
+              <div className="text-xs text-[#606060] dark:text-[#aaaaaa]">
+                {channelData?.items?.[0]?.statistics?.subscriberCount ? `${formatViewCount(channelData.items[0].statistics.subscriberCount)} subscribers` : ''}
+              </div>
             </div>
 
             {/* Subscribe Button */}
-            <Tooltip content={isSubscribed ? 'Unsubscribe from channel' : 'Subscribe to channel'} position="top">
-              <button
-                onClick={handleSubscribeToggle}
-                className={`px-5 py-2 rounded-full font-bold text-xs transition-all ml-2 shadow-sm cursor-pointer ${
-                  isSubscribed
-                    ? 'bg-neutral-200 text-neutral-800 dark:bg-white/20 dark:text-white hover:bg-red-600 hover:text-white'
-                    : 'bg-red-600 hover:bg-red-700 text-white'
-                }`}
-              >
-                {isSubscribed ? 'Subscribed' : 'Subscribe'}
-              </button>
-            </Tooltip>
+            <button
+              onClick={handleSubscribeToggle}
+              className={`px-4 py-2 rounded-full font-medium text-sm transition-all cursor-pointer ${
+                isSubscribed
+                  ? 'bg-neutral-100 text-[#0f0f0f] dark:bg-white/10 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/20'
+                  : 'bg-[#0f0f0f] text-white dark:bg-[#f1f1f1] dark:text-[#0f0f0f] hover:bg-neutral-800 dark:hover:bg-neutral-200'
+              }`}
+            >
+              {isSubscribed ? 'Subscribed' : 'Subscribe'}
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
             {/* Like & Dislike */}
-            <div className="flex items-center bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-white rounded-full h-9">
-              <Tooltip content={isLiked ? 'Unlike' : 'I like this'} position="top">
-                <button
-                  onClick={() => toggleLikeVideo(currentVideoItem)}
-                  className={`flex items-center gap-2 px-4 h-full hover:bg-neutral-200 dark:hover:bg-white/20 rounded-l-full border-r border-neutral-300 dark:border-white/20 transition-colors cursor-pointer ${
-                    isLiked ? 'text-blue-600 dark:text-blue-400 font-bold' : ''
-                  }`}
-                >
-                  <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                  <span className="text-xs font-bold">{formatViewCount(video.statistics.likeCount)}</span>
-                </button>
-              </Tooltip>
+            <div className="flex items-center bg-neutral-100 dark:bg-white/10 text-[#0f0f0f] dark:text-white rounded-full h-9">
+              <button
+                onClick={() => toggleLikeVideo(currentVideoItem)}
+                className={`flex items-center gap-2 px-4 h-full hover:bg-neutral-200 dark:hover:bg-white/20 rounded-l-full relative cursor-pointer ${
+                  isLiked ? 'text-blue-600 dark:text-blue-400 font-medium' : 'font-medium'
+                }`}
+              >
+                <ThumbsUp className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} strokeWidth={1.5} />
+                <span className="text-sm">{formatViewCount(video.statistics.likeCount)}</span>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[1px] h-6 bg-neutral-300 dark:bg-white/20"></div>
+              </button>
 
-              <Tooltip content={isDisliked ? 'Remove Dislike' : 'I dislike this'} position="top">
-                <button
-                  onClick={() => toggleDislikeVideo(id || '')}
-                  className={`px-4 h-full hover:bg-neutral-200 dark:hover:bg-white/20 rounded-r-full transition-colors cursor-pointer ${
-                    isDisliked ? 'text-red-500 font-bold' : ''
-                  }`}
-                >
-                  <ThumbsDown className={`w-4 h-4 ${isDisliked ? 'fill-current' : ''}`} />
-                </button>
-              </Tooltip>
+              <button
+                onClick={() => toggleDislikeVideo(id || '')}
+                className={`px-4 h-full hover:bg-neutral-200 dark:hover:bg-white/20 rounded-r-full transition-colors cursor-pointer ${
+                  isDisliked ? 'text-blue-600 dark:text-blue-400' : ''
+                }`}
+              >
+                <ThumbsDown className={`w-5 h-5 ${isDisliked ? 'fill-current' : ''}`} strokeWidth={1.5} />
+              </button>
             </div>
 
             {/* Share */}
-            <Tooltip content="Share video link" position="top">
-              <button
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex items-center gap-2 px-4 h-9 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-neutral-800 dark:text-white rounded-full transition-colors cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="text-xs font-bold">Share</span>
-              </button>
-            </Tooltip>
-
-            {/* Save to Playlist */}
-            <Tooltip content="Save to playlist" position="top">
-              <button
-                onClick={() => setIsSaveModalOpen(true)}
-                className="flex items-center gap-2 px-4 h-9 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-neutral-800 dark:text-white rounded-full transition-colors cursor-pointer"
-              >
-                <Bookmark className="w-4 h-4" />
-                <span className="text-xs font-bold">Save</span>
-              </button>
-            </Tooltip>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex items-center gap-2 px-4 h-9 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#0f0f0f] dark:text-white rounded-full transition-colors cursor-pointer"
+            >
+              <Share2 className="w-5 h-5" strokeWidth={1.5} />
+              <span className="text-sm font-medium">Share</span>
+            </button>
 
             {/* Download */}
-            <Tooltip content="Download video" position="top">
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-2 px-4 h-9 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-neutral-800 dark:text-white rounded-full transition-colors cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span className="text-xs font-bold hidden sm:inline">Download</span>
-              </button>
-            </Tooltip>
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-4 h-9 bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#0f0f0f] dark:text-white rounded-full transition-colors cursor-pointer"
+            >
+              <Download className="w-5 h-5" strokeWidth={1.5} />
+              <span className="text-sm font-medium hidden sm:inline">Download</span>
+            </button>
+
+            {/* More Menu (Save) */}
+            <button
+              onClick={() => setIsSaveModalOpen(true)}
+              className="w-9 h-9 flex justify-center items-center bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 text-[#0f0f0f] dark:text-white rounded-full transition-colors cursor-pointer shrink-0"
+              title="Save to playlist"
+            >
+              <ListPlus className="w-5 h-5" strokeWidth={1.5} />
+            </button>
+
           </div>
         </div>
 
         {/* Description Box */}
-        <div className="bg-neutral-100 dark:bg-white/5 p-4 rounded-2xl text-sm text-neutral-800 dark:text-white border border-neutral-200 dark:border-white/10">
-          <div className="font-bold text-xs text-neutral-600 dark:text-white/70 mb-2">
-            {formatViewCount(video.statistics.viewCount)} views • {formatPublishedAt(video.snippet.publishedAt)}
+        <div 
+          className="bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 p-3 rounded-xl text-sm text-[#0f0f0f] dark:text-[#f1f1f1] cursor-pointer mt-2 transition-colors"
+          onClick={() => setShowFullDescription(!showFullDescription)}
+        >
+          <div className="font-semibold text-sm mb-1">
+            {formatViewCount(video.statistics.viewCount)} views  {formatPublishedAt(video.snippet.publishedAt)}
           </div>
-          <div className={cn("text-neutral-800 dark:text-white/90 whitespace-pre-wrap leading-relaxed text-xs", !showFullDescription && "line-clamp-3")}>
+          <div className={cn("whitespace-pre-wrap leading-relaxed text-sm", !showFullDescription && "line-clamp-2")}>
             {video.snippet.description}
           </div>
           <button 
-            className="mt-2 text-blue-600 dark:text-blue-400 font-bold hover:underline text-xs"
-            onClick={() => setShowFullDescription(!showFullDescription)}
+            className="mt-2 font-semibold text-sm"
           >
-            {showFullDescription ? 'Show less' : 'Show more'}
+            {showFullDescription ? 'Show less' : '...more'}
           </button>
         </div>
 
+        {/* Adsterra Below Video Banner */}
+        <AdContainer placement="watchBelowVideo" format="728x90" className="my-2" />
+
         {/* Comments Section */}
         <div className="mt-6 flex flex-col gap-6">
-           <h2 className="text-lg font-extrabold flex items-center gap-2">
+           <h2 className="text-xl font-bold text-[#0f0f0f] dark:text-[#f1f1f1]">
              {formatViewCount((video.statistics.commentCount || 0) + videoCustomComments.length)} Comments
            </h2>
 
            {/* Add New Comment */}
-           <form onSubmit={handlePostComment} className="flex gap-3 items-start">
-             <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-md">
+           <form onSubmit={handlePostComment} className="flex gap-4 items-start">
+             <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-medium text-sm flex items-center justify-center shrink-0">
                JD
              </div>
-             <div className="flex-1 flex flex-col gap-2">
+             <div className="flex-1 flex flex-col gap-2 pt-1">
                <input
                  type="text"
                  placeholder="Add a comment..."
                  value={newCommentText}
                  onChange={(e) => setNewCommentText(e.target.value)}
-                 className="w-full bg-transparent border-b border-neutral-300 dark:border-white/20 focus:border-blue-500 outline-none pb-2 text-xs transition-colors text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/40"
+                 className="w-full bg-transparent border-b border-neutral-300 dark:border-white/20 focus:border-[#0f0f0f] dark:focus:border-white outline-none pb-1 text-sm transition-colors text-[#0f0f0f] dark:text-[#f1f1f1] placeholder-neutral-500"
                />
-               <div className="flex items-center justify-end gap-2">
+               <div className="flex items-center justify-end gap-2 mt-1">
                  {newCommentText && (
                    <button
                      type="button"
                      onClick={() => setNewCommentText('')}
-                     className="px-3 py-1.5 text-xs font-semibold hover:bg-neutral-100 dark:hover:bg-white/10 rounded-full"
+                     className="px-4 py-2 text-sm font-medium hover:bg-neutral-100 dark:hover:bg-white/10 rounded-full cursor-pointer text-[#0f0f0f] dark:text-[#f1f1f1]"
                    >
                      Cancel
                    </button>
@@ -401,9 +342,8 @@ export function Watch() {
                  <button
                    type="submit"
                    disabled={!newCommentText.trim()}
-                   className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full disabled:opacity-50 transition-colors shadow-sm"
+                   className="px-4 py-2 bg-blue-600 disabled:bg-neutral-100 disabled:dark:bg-white/10 disabled:text-neutral-500 text-white text-sm font-medium rounded-full transition-colors cursor-pointer"
                  >
-                   <Send className="w-3.5 h-3.5" />
                    Comment
                  </button>
                </div>
@@ -412,17 +352,21 @@ export function Watch() {
            
            {/* Newly Posted User Comments */}
            {videoCustomComments.map((c) => (
-             <div key={c.id} className="flex gap-3 items-start bg-blue-50/50 dark:bg-blue-950/10 p-3 rounded-2xl border border-blue-200/50 dark:border-blue-800/30">
-               <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+             <div key={c.id} className="flex gap-4 items-start">
+               <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-medium text-sm flex items-center justify-center shrink-0">
                  JD
                </div>
                <div className="flex flex-col gap-1">
                  <div className="flex items-center gap-2">
-                   <span className="font-bold text-xs">{c.author}</span>
-                   <span className="text-[10px] text-neutral-500 dark:text-white/50">{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                   <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-extrabold uppercase">You</span>
+                   <span className="font-semibold text-[13px] text-[#0f0f0f] dark:text-[#f1f1f1]">{c.author}</span>
+                   <span className="text-[12px] text-[#606060] dark:text-[#aaaaaa]">Just now</span>
                  </div>
-                 <p className="text-xs text-neutral-800 dark:text-white/90">{c.text}</p>
+                 <p className="text-sm text-[#0f0f0f] dark:text-[#f1f1f1] whitespace-pre-wrap">{c.text}</p>
+                 <div className="flex items-center gap-4 mt-1 text-[#0f0f0f] dark:text-[#f1f1f1]">
+                   <button className="p-2 -ml-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer"><ThumbsUp className="w-4 h-4" strokeWidth={1.5} /></button>
+                   <button className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer"><ThumbsDown className="w-4 h-4" strokeWidth={1.5} /></button>
+                   <button className="text-xs font-semibold px-3 py-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer">Reply</button>
+                 </div>
                </div>
              </div>
            ))}
@@ -431,18 +375,19 @@ export function Watch() {
            {comments.map((comment: any) => {
              const snippet = comment.snippet.topLevelComment.snippet;
              return (
-               <div key={comment.id} className="flex gap-3 items-start">
-                  <img src={snippet.authorProfileImageUrl} alt={snippet.authorDisplayName} className="w-9 h-9 rounded-full shrink-0 object-cover" />
+               <div key={comment.id} className="flex gap-4 items-start">
+                  <img src={snippet.authorProfileImageUrl} alt={snippet.authorDisplayName} className="w-10 h-10 rounded-full shrink-0 object-cover" onError={handleThumbnailError} />
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-neutral-900 dark:text-white">{snippet.authorDisplayName}</span>
-                      <span className="text-[10px] text-neutral-500 dark:text-white/50">{formatPublishedAt(snippet.publishedAt)}</span>
+                      <span className="font-semibold text-[13px] text-[#0f0f0f] dark:text-[#f1f1f1]">{snippet.authorDisplayName}</span>
+                      <span className="text-[12px] text-[#606060] dark:text-[#aaaaaa]">{formatPublishedAt(snippet.publishedAt)}</span>
                     </div>
-                    <p className="text-xs whitespace-pre-wrap text-neutral-800 dark:text-white/90" dangerouslySetInnerHTML={{ __html: snippet.textDisplay }}></p>
-                    <div className="flex items-center gap-3 mt-1 text-neutral-500 dark:text-white/60 text-xs">
-                      <button className="hover:text-blue-500 transition-colors"><ThumbsUp className="w-3.5 h-3.5" /></button>
-                      <span>{formatViewCount(snippet.likeCount)}</span>
-                      <button className="hover:text-red-500 transition-colors"><ThumbsDown className="w-3.5 h-3.5" /></button>
+                    <p className="text-sm text-[#0f0f0f] dark:text-[#f1f1f1] whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: snippet.textDisplay }}></p>
+                    <div className="flex items-center gap-1 mt-1 text-[#0f0f0f] dark:text-[#f1f1f1]">
+                      <button className="p-2 -ml-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer"><ThumbsUp className="w-4 h-4" strokeWidth={1.5} /></button>
+                      <span className="text-xs text-[#606060] dark:text-[#aaaaaa] mr-2">{formatViewCount(snippet.likeCount)}</span>
+                      <button className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer"><ThumbsDown className="w-4 h-4" strokeWidth={1.5} /></button>
+                      <button className="text-xs font-semibold px-3 py-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 cursor-pointer">Reply</button>
                     </div>
                   </div>
                </div>
@@ -452,52 +397,30 @@ export function Watch() {
       </div>
 
       {/* Secondary Column - Suggested Videos */}
-      {!isTheaterMode && (
-        <div className="w-full lg:w-[380px] shrink-0 flex flex-col gap-4">
-           <div className="flex items-center justify-between">
-             <h3 className="font-bold text-sm text-neutral-700 dark:text-white/80 uppercase tracking-wider">Up Next</h3>
-             <button
-               onClick={toggleAutoplay}
-               className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-               title={isAutoplay ? 'Autoplay is ON' : 'Autoplay is OFF'}
-             >
-               <span>Autoplay</span>
-               <div className={cn(
-                 "w-9 h-5 rounded-full p-0.5 transition-colors relative flex items-center shadow-inner",
-                 isAutoplay ? "bg-blue-600" : "bg-neutral-300 dark:bg-neutral-700"
-               )}>
-                 <div className={cn(
-                   "w-4 h-4 rounded-full bg-white shadow-md transition-transform flex items-center justify-center",
-                   isAutoplay ? "translate-x-4" : "translate-x-0"
-                 )}>
-                   {isAutoplay ? <Play className="w-2.5 h-2.5 text-blue-600 fill-blue-600 ml-0.5" /> : <Pause className="w-2.5 h-2.5 text-neutral-600 fill-neutral-600" />}
+      <div className="w-full lg:w-[400px] shrink-0 flex flex-col gap-3">
+        {/* Adsterra Sidebar 300x250 Ad */}
+        <AdContainer placement="watchSidebar" format="300x250" className="mb-2" />
+
+        {relatedVideos.map((v: any) => {
+               const vid = typeof v.id === 'string' ? v.id : v.id.videoId;
+               if (!vid) return null;
+               
+               return (
+                 <div key={vid} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
+                    <Link to={`/watch/${vid}`} className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800">
+                      <img src={v.snippet.thumbnails?.medium?.url} alt={v.snippet.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
+                    </Link>
+                    <div className="flex flex-col flex-1">
+                       <Link to={`/watch/${vid}`}>
+                         <h4 className="text-sm font-semibold leading-snug line-clamp-2 text-[#0f0f0f] dark:text-[#f1f1f1]" dangerouslySetInnerHTML={{ __html: v.snippet.title }}></h4>
+                       </Link>
+                       <Link to={`/channel/${v.snippet.channelId}`} className="text-xs text-[#606060] dark:text-[#aaaaaa] mt-1 hover:text-[#0f0f0f] dark:hover:text-[#f1f1f1] transition-colors">{v.snippet.channelTitle}</Link>
+                       <div className="text-xs text-[#606060] dark:text-[#aaaaaa]">{formatPublishedAt(v.snippet.publishedAt)}</div>
+                    </div>
                  </div>
-               </div>
-             </button>
-           </div>
-           <div className="flex flex-col gap-3">
-              {relatedVideos.map((v: any) => {
-                 const vid = typeof v.id === 'string' ? v.id : v.id.videoId;
-                 if (!vid) return null;
-                 
-                 return (
-                   <div key={vid} className="flex gap-3 group cursor-pointer p-1.5 rounded-2xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors">
-                      <Link to={`/watch/${vid}`} className="w-36 aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-800">
-                        <img src={v.snippet.thumbnails?.medium?.url} alt={v.snippet.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      </Link>
-                      <div className="flex flex-col flex-1 pr-1">
-                         <Link to={`/watch/${vid}`}>
-                           <h4 className="text-xs font-bold leading-snug line-clamp-2 mb-1 group-hover:text-blue-500 transition-colors" dangerouslySetInnerHTML={{ __html: v.snippet.title }}></h4>
-                         </Link>
-                         <Link to={`/channel/${v.snippet.channelId}`} className="text-[11px] text-neutral-500 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-colors">{v.snippet.channelTitle}</Link>
-                         <div className="text-[10px] text-neutral-400 dark:text-white/40">{formatPublishedAt(v.snippet.publishedAt)}</div>
-                      </div>
-                   </div>
-                 );
-              })}
-           </div>
+               );
+            })}
         </div>
-      )}
 
       {/* Save to Playlist Modal */}
       <SaveToPlaylistModal

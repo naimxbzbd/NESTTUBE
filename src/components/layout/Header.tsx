@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Menu, Search, Mic, Video, Bell, Sun, Moon, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, Search, Mic, Video, Bell, Sun, Moon, ArrowLeft, Megaphone } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useUserStore } from '../../store/useUserStore';
+import { useAdsterra } from '../../context/AdsterraContext';
 import { CreateVideoModal } from './CreateVideoModal';
 import { VoiceSearchModal } from './VoiceSearchModal';
 import { NotificationsPopover } from './NotificationsPopover';
@@ -11,6 +12,7 @@ import { WatchTimeModal } from './WatchTimeModal';
 import { ContactDeveloperModal } from './ContactDeveloperModal';
 import { SearchInput } from './SearchInput';
 import { Tooltip } from '../ui/Tooltip';
+import { AuthModal } from '../auth/AuthModal';
 
 interface HeaderProps {
   onToggleMenu?: () => void;
@@ -24,9 +26,19 @@ export function Header({ onToggleMenu }: HeaderProps) {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isWatchTimeOpen, setIsWatchTimeOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'coupon'>('login');
 
   const { theme, toggleTheme } = useTheme();
-  const { unreadNotificationCount } = useUserStore();
+  const { unreadNotificationCount, currentUser } = useUserStore();
+  const { openSettings: openAdSettings, config: adConfig } = useAdsterra();
+  const location = useLocation();
+
+  const handleLogoClick = () => {
+    if (location.pathname === '/') {
+      window.dispatchEvent(new CustomEvent('refresh-home'));
+    }
+  };
 
   const unreadCount = unreadNotificationCount();
 
@@ -68,7 +80,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
                 <Menu className="w-6 h-6" />
               </button>
             </Tooltip>
-            <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
+            <Link to="/" onClick={handleLogoClick} className="flex items-center gap-1.5 sm:gap-2">
               <div className="bg-[#ff0000] w-6 sm:w-7 h-4.5 sm:h-5 rounded flex items-center justify-center shrink-0 shadow-sm">
                 <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[6px] border-l-white border-b-[3px] border-b-transparent ml-0.5"></div>
               </div>
@@ -104,6 +116,20 @@ export function Header({ onToggleMenu }: HeaderProps) {
             >
               <Search className="w-5 h-5" />
             </button>
+
+            {/* Adsterra Monetization Manager */}
+            <Tooltip content="Adsterra Ad Settings" position="bottom">
+              <button
+                onClick={openAdSettings}
+                className="p-2 sm:p-2.5 hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-800 dark:text-white rounded-full transition-colors flex items-center justify-center cursor-pointer relative"
+                aria-label="Adsterra Monetization Settings"
+              >
+                <Megaphone className="w-5 h-5 text-amber-500" />
+                {adConfig.enabled && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                )}
+              </button>
+            </Tooltip>
 
             {/* Theme Toggle Button */}
             <Tooltip content={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'} position="bottom">
@@ -146,16 +172,31 @@ export function Header({ onToggleMenu }: HeaderProps) {
             </Tooltip>
 
             {/* User Avatar & Account Menu */}
-            <Tooltip content="User Account" position="bottom">
+            {currentUser ? (
+              <Tooltip content="User Account" position="bottom">
+                <button
+                  onClick={() => setIsAccountOpen(!isAccountOpen)}
+                  className="ml-0.5 sm:ml-1 relative cursor-pointer"
+                >
+                  <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-blue-600 text-white overflow-hidden flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm hover:opacity-90 transition-opacity uppercase">
+                    {currentUser.name.charAt(0)}
+                  </div>
+                </button>
+              </Tooltip>
+            ) : (
               <button
-                onClick={() => setIsAccountOpen(!isAccountOpen)}
-                className="ml-0.5 sm:ml-1 relative cursor-pointer"
+                onClick={() => {
+                  setAuthMode('login');
+                  setIsAuthModalOpen(true);
+                }}
+                className="ml-2 flex items-center gap-2 px-3 py-1.5 border border-neutral-200 dark:border-white/20 rounded-full text-blue-600 dark:text-blue-400 font-medium text-sm hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors whitespace-nowrap cursor-pointer"
               >
-                <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-blue-600 text-white overflow-hidden flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm hover:opacity-90 transition-opacity">
-                  NX
+                <div className="w-5 h-5 rounded-full border border-blue-600 dark:border-blue-400 flex items-center justify-center">
+                  <span className="text-[10px]"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                 </div>
+                Sign in
               </button>
-            </Tooltip>
+            )}
 
             {/* Popovers & Modals */}
             <NotificationsPopover
@@ -194,6 +235,12 @@ export function Header({ onToggleMenu }: HeaderProps) {
       <ContactDeveloperModal
         isOpen={isContactOpen}
         onClose={() => setIsContactOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authMode}
       />
     </header>
   );

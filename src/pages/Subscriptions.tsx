@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
 import { VideoCard } from '../components/video/VideoCard';
 import { getFallbackChannelAvatar } from '../lib/avatar';
+import { handleThumbnailError } from '../lib/utils';
 
 export function Subscriptions() {
   const { subscribedChannels, toggleSubscribe } = useUserStore();
@@ -52,6 +53,7 @@ export function Subscriptions() {
                       src={ch.avatarUrl || getFallbackChannelAvatar(ch.title, ch.id)} 
                       alt={ch.title} 
                       className="w-full h-full object-cover" 
+                      onError={handleThumbnailError}
                     />
                   </div>
                   <span className="text-xs font-bold line-clamp-1 mt-2 text-center">{ch.title}</span>

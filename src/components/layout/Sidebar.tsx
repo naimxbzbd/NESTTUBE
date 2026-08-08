@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Compass, PlaySquare, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Radio, Code2, Mail, Sparkles, MessageSquare, Crown, Handshake, X } from 'lucide-react';
+import { Home, Compass, PlaySquare, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Radio, Code2, Mail, Sparkles, MessageSquare, Crown, Handshake, X, ListVideo } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useUserStore } from '../../store/useUserStore';
@@ -13,7 +13,7 @@ interface SidebarProps {
 
 export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation();
-  const { subscribedChannels } = useUserStore();
+  const { subscribedChannels, playlists } = useUserStore();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isSponsorshipOpen, setIsSponsorshipOpen] = useState(false);
 
@@ -150,6 +150,24 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           <ThumbsUp className="w-6 h-6" />
           <span>Liked videos</span>
         </Link>
+
+        {/* Custom Playlists */}
+        {playlists.map((pl) => (
+          <Link
+            key={pl.id}
+            to={`/playlist/${pl.id}`}
+            onClick={handleLinkClick}
+            className={cn(
+              "rounded-xl px-3 py-2.5 flex items-center gap-5 cursor-pointer transition-colors text-sm font-medium",
+              isActive(`/playlist/${pl.id}`)
+                ? "bg-neutral-200/80 dark:bg-white/10 font-bold"
+                : "hover:bg-neutral-100 dark:hover:bg-white/5"
+            )}
+          >
+            <ListVideo className="w-6 h-6" />
+            <span className="truncate">{pl.title}</span>
+          </Link>
+        ))}
 
         <div className="h-[1px] bg-neutral-200 dark:bg-white/10 my-3 mx-2"></div>
 

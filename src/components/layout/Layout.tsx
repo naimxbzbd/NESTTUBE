@@ -5,6 +5,8 @@ import { MobileNav } from './MobileNav';
 import { Outlet, useLocation } from 'react-router-dom';
 import { MiniPlayer } from '../video/MiniPlayer';
 import { ScrollToTopButton } from '../ui/ScrollToTopButton';
+import { OfflineBanner } from '../ui/OfflineBanner';
+import { AdContainer } from '../ads/AdContainer';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function Layout() {
@@ -14,6 +16,7 @@ export function Layout() {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white overflow-hidden font-sans relative pb-14 md:pb-0 transition-colors">
+      <OfflineBanner />
       <Header onToggleMenu={() => setIsMobileMenuOpen((prev) => !prev)} />
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar 
@@ -21,6 +24,9 @@ export function Layout() {
           onCloseMobile={() => setIsMobileMenuOpen(false)} 
         />
         <main ref={mainRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
+          <div className="max-w-7xl mx-auto px-4 pt-2">
+            <AdContainer placement="headerBanner" format="728x90" />
+          </div>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

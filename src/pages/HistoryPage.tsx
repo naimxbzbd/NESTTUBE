@@ -3,6 +3,7 @@ import { History, Trash2, Search, ArrowUpDown, Pause, Play, X, Calendar } from '
 import { Link } from 'react-router-dom';
 import { getWatchHistory, clearWatchHistory, removeFromWatchHistory, HistoryItem } from '../lib/watchHistory';
 import { formatPublishedAt, formatViewCount } from '../lib/formatters';
+import { handleThumbnailError } from '../lib/utils';
 
 export function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -70,7 +71,7 @@ export function HistoryPage() {
                 {/* Thumbnail */}
                 <Link to={`/watch/${item.id}`} className="w-full sm:w-56 aspect-video rounded-xl overflow-hidden shrink-0 bg-neutral-800 relative block">
                   {item.thumbnailUrl && (
-                    <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" onError={handleThumbnailError} />
                   )}
                   {item.duration && (
                     <span className="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
