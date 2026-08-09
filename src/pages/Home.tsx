@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, RotateCw, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -96,6 +96,25 @@ export function Home() {
     }
   }, [videos]);
 
+  // Interleave ads into the videos array: 1 ad per row (every 3 videos)
+  const interleavedItems = useMemo(() => {
+    const items = [];
+    let adCounter = 0;
+    for (let i = 0; i < videos.length; i += 3) {
+      const chunk = videos.slice(i, i + 3);
+      // Pseudo-random position 0, 1, 2, or 3 based on the adCounter and refreshSeed
+      const seedVal = typeof refreshSeed === 'number' ? refreshSeed : 0;
+      const adPosition = (adCounter * 17 + seedVal) % 4; 
+      
+      const rowItems = [...chunk];
+      rowItems.splice(adPosition, 0, { isAd: true, adIndex: adCounter });
+      
+      items.push(...rowItems);
+      adCounter++;
+    }
+    return items;
+  }, [videos, refreshSeed]);
+
   const channelIds = videos.map((v: any) => v.snippet?.channelId).filter(Boolean);
   const channelAvatarMap = useChannelAvatars(channelIds);
 
@@ -181,25 +200,28 @@ export function Home() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
-                  {videos.map((video: any, index: number) => {
+                  {interleavedItems.map((item: any, index: number) => {
+                    if (item.isAd) {
+                      return <NativeAdCard key={`ad-${index}-${item.adIndex}`} index={item.adIndex} />;
+                    }
+
+                    const video = item;
                     const id = typeof video.id === 'string' ? video.id : video.id.videoId;
                     if (!id) return null;
-                    const showAdAfter = index > 0 && index % 8 === 0;
+
                     return (
-                      <React.Fragment key={`${id}-${index}`}>
-                        {showAdAfter && <NativeAdCard index={Math.floor(index / 8)} />}
-                        <VideoCard
-                          id={id}
-                          title={video.snippet.title}
-                          channelName={video.snippet.channelTitle}
-                          channelId={video.snippet.channelId}
-                          views={video.statistics?.viewCount}
-                          publishedAt={video.snippet.publishedAt}
-                          duration={video.contentDetails?.duration}
-                          thumbnailUrl={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url}
-                          channelAvatarUrl={video.snippet.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
-                        />
-                      </React.Fragment>
+                      <VideoCard
+                        key={`video-${id}-${index}`}
+                        id={id}
+                        title={video.snippet.title}
+                        channelName={video.snippet.channelTitle}
+                        channelId={video.snippet.channelId}
+                        views={video.statistics?.viewCount}
+                        publishedAt={video.snippet.publishedAt}
+                        duration={video.contentDetails?.duration}
+                        thumbnailUrl={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url}
+                        channelAvatarUrl={video.snippet.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
+                      />
                     );
                   })}
                 </div>

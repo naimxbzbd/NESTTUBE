@@ -25,7 +25,9 @@ export function Layout() {
         />
         <main ref={mainRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
           <div className="max-w-7xl mx-auto px-4 pt-2">
-            <AdContainer placement="headerBanner" format="728x90" />
+            <div className="bg-neutral-900 rounded-2xl px-2">
+              <AdContainer placement="headerBanner" format="728x90" />
+            </div>
           </div>
           <AnimatePresence mode="wait">
             <motion.div

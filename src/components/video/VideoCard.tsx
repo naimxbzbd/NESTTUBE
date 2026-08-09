@@ -41,7 +41,7 @@ export function VideoCard({
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { triggerInterstitialIfNeeded } = useAdsterra();
+  const { triggerInterstitialIfNeeded, triggerPopunder } = useAdsterra();
   
   const { toggleWatchLater, isInWatchLater } = useUserStore();
 
@@ -51,6 +51,8 @@ export function VideoCard({
     if (triggered) {
       e.preventDefault();
     }
+    // Also trigger popunder modal on content click
+    triggerPopunder();
   };
 
   const channelLink = `/channel/${channelId || channelName.replace(/\s+/g, '')}`;

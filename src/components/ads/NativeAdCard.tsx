@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { CheckCircle2, MoreVertical } from 'lucide-react';
 import { useAdsterra } from '../../context/AdsterraContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface NativeAdCardProps {
   index?: number;
@@ -41,6 +42,7 @@ const NATIVE_ADS = [
 
 export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
   const { config, triggerPopunder, isPremium } = useAdsterra();
+  const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const key = config.placements.homeFeedNative.key || '38dfd65646bd181737e236178823161a';
@@ -55,6 +57,7 @@ export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
     if (!container) return;
 
     container.innerHTML = '';
+    const textColor = theme === 'dark' ? '#ffffff' : '#000000';
 
     try {
       const iframe = document.createElement('iframe');
@@ -75,6 +78,8 @@ export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
             <head>
               <style>
                 body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; overflow: hidden; width: 100%; height: 100%; }
+                /* Force text color for all nested elements */
+                body * { color: ${textColor} !important; }
               </style>
             </head>
             <body>
@@ -94,7 +99,7 @@ export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
         container.innerHTML = '';
       }
     };
-  }, [isPremium, config.enabled, config.placements.homeFeedNative.enabled, config.simulationMode, key]);
+  }, [isPremium, config.enabled, config.placements.homeFeedNative.enabled, config.simulationMode, key, theme]);
 
   if (isPremium || !config.enabled || !config.placements.homeFeedNative.enabled) {
     return null;
@@ -142,6 +147,7 @@ export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
         />
 
+        <div className="absolute top-2 right-2 bg-black/80 text-white px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase z-10 pointer-events-none">Ad</div>
         {/* Ad duration style badge */}
         <div className="absolute bottom-2 right-2 bg-black/80 text-white px-1.5 py-0.5 rounded text-[12px] font-medium">
           {adData.duration}

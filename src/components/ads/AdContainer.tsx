@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Sparkles, X, Info, Settings, ShieldCheck, Zap } from 'lucide-react';
 import { useAdsterra } from '../../context/AdsterraContext';
+import { useTheme } from '../../context/ThemeContext';
 import { cn } from '../../lib/utils';
 
 export interface AdContainerProps {
@@ -57,6 +58,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   label = 'Advertisement'
 }) => {
   const { config, openSettings, triggerPopunder, isPremium } = useAdsterra();
+  const { theme } = useTheme();
   const [dismissed, setDismissed] = useState(false);
   const [adError, setAdError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,7 +95,6 @@ export const AdContainer: React.FC<AdContainerProps> = ({
 
     let width = 728;
     let height = 90;
-
     if (adFormat === '300x250') {
       width = 300;
       height = 250;
@@ -104,6 +105,8 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       width = 160;
       height = 600;
     }
+
+    const textColor = theme === 'dark' ? '#ffffff' : '#000000';
 
     try {
       const iframe = document.createElement('iframe');
@@ -128,6 +131,8 @@ export const AdContainer: React.FC<AdContainerProps> = ({
               <link rel="preload" href="//www.highperformanceformat.com/${zoneKey}/invoke.js" as="script">
               <style>
                 body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: transparent; overflow: hidden; }
+                /* Force text color for all nested elements */
+                body * { color: ${textColor} !important; }
               </style>
             </head>
             <body>
@@ -164,7 +169,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
         container.innerHTML = '';
       }
     };
-  }, [dismissed, isPlacementEnabled, config.simulationMode, zoneKey, adFormat]);
+  }, [dismissed, isPlacementEnabled, config.simulationMode, zoneKey, adFormat, theme]);
 
   if (dismissed || !isPlacementEnabled) {
     return null;
@@ -177,12 +182,12 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   return (
     <div className={cn("relative group my-3 transition-all duration-200", className)}>
       {/* Label & Admin Controls Bar */}
-      <div className="flex items-center justify-between px-2 py-1 text-[11px] text-neutral-500 dark:text-neutral-400 font-medium tracking-wide border-b border-dashed border-neutral-200 dark:border-white/10 mb-1.5">
+      <div className={cn("flex items-center justify-between px-2 py-1 text-[11px] font-medium tracking-wide border-b border-dashed border-neutral-200 dark:border-white/10 mb-1.5", placement === 'headerBanner' ? "text-white" : "text-neutral-500 dark:text-neutral-400")}>
         <div className="flex items-center gap-1.5">
-          <span className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border border-amber-500/20">
+          <span className={cn("text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border", placement === 'headerBanner' ? "bg-white/20 text-white border-white/30" : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20")}>
             {label}
           </span>
-          <span className="text-xs text-neutral-400 dark:text-neutral-500">
+          <span className={cn("text-xs", placement === 'headerBanner' ? "text-white/80" : "text-neutral-400 dark:text-neutral-500")}>
             {config.simulationMode ? '(Adsterra Demo)' : `(Zone: ${zoneKey.slice(0, 8)}...)`}
           </span>
         </div>
@@ -231,10 +236,10 @@ export const AdContainer: React.FC<AdContainerProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">
                   {promo.tag}
                 </span>
-                <h4 className="font-bold text-sm text-neutral-900 dark:text-white leading-tight">
+                <h4 className={cn("font-bold text-sm leading-tight", placement === 'headerBanner' ? "text-white" : "text-neutral-900 dark:text-white")}>
                   {promo.title}
                 </h4>
-                <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-2">
+                <p className={cn("text-xs line-clamp-2", placement === 'headerBanner' ? "text-white/80" : "text-neutral-600 dark:text-neutral-300")}>
                   {promo.desc}
                 </p>
               </div>
@@ -257,14 +262,14 @@ export const AdContainer: React.FC<AdContainerProps> = ({
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-neutral-900 dark:text-white leading-snug">
+                    <span className={cn("font-bold text-sm leading-snug", placement === 'headerBanner' ? "text-white" : "text-neutral-900 dark:text-white")}>
                       {promo.title}
                     </span>
                     <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
                       {promo.tag}
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-600 dark:text-neutral-300 line-clamp-1 mt-0.5">
+                  <p className={cn("text-xs line-clamp-1 mt-0.5", placement === 'headerBanner' ? "text-white/80" : "text-neutral-600 dark:text-neutral-300")}>
                     {promo.desc}
                   </p>
                 </div>

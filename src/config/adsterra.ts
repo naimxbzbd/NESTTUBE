@@ -46,7 +46,7 @@ export interface AdsterraConfig {
 
 export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
   enabled: true,
-  allowAdultAds: false, // Default: Adult ads strictly turned off
+  allowAdultAds: true, // Enabled
   simulationMode: false,
   publisherId: 'adsterra-publisher',
   placements: {
@@ -92,7 +92,7 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
     triggerOnFirstClick: true,
   },
   socialBar: {
-    enabled: false,
+    enabled: true,
     key: 'a9e3bd5d92edf03e7a2106e5243a4490',
     position: 'bottom-right',
   },

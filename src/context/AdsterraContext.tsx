@@ -15,7 +15,9 @@ interface AdsterraContextType {
   triggerInterstitialIfNeeded: (targetPath?: string) => boolean;
   closeInterstitial: () => void;
   // Popunder trigger
+  isPopunderModalOpen: boolean;
   triggerPopunder: () => void;
+  closePopunderModal: () => void;
   // Counters
   videoWatchCount: number;
   incrementWatchCount: () => void;
@@ -35,6 +37,7 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [lastInterstitialTime, setLastInterstitialTime] = useState<number>(0);
   const [videoWatchCount, setVideoWatchCount] = useState<number>(0);
   const [hasPopunderFired, setHasPopunderFired] = useState<boolean>(false);
+  const [isPopunderModalOpen, setIsPopunderModalOpen] = useState(false);
 
   useEffect(() => {
     const handleConfigUpdate = (e: Event) => {
@@ -51,16 +54,8 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    if (!isPremium && config.enabled && config.popunder.enabled && !config.simulationMode) {
-      const scriptId = 'adsterra-popunder-script';
-      if (!document.getElementById(scriptId)) {
-        const script = document.createElement('script');
-        script.id = scriptId;
-        script.src = 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js';
-        script.async = true;
-        document.body.appendChild(script);
-      }
-    }
+    // Pop-under background script completely disabled as per requirements.
+    // It will now only trigger as an in-page floating modal on navigation.
   }, [isPremium, config.enabled, config.popunder.enabled, config.simulationMode]);
 
   const updateConfig = useCallback((newConfig: AdsterraConfig) => {
@@ -82,26 +77,16 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const triggerPopunder = useCallback(() => {
     if (isPremium || !config.enabled || !config.popunder.enabled) return;
-    if (config.popunder.triggerOnFirstClick && hasPopunderFired) return;
+    setIsPopunderModalOpen(true);
+  }, [isPremium, config]);
 
-    const url = config.popunder.smartLinkUrl || 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js';
-
-    if (url) {
-      try {
-        const popunderWin = window.open(url, '_blank');
-        if (popunderWin) {
-          popunderWin.blur();
-          window.focus();
-        }
-        setHasPopunderFired(true);
-      } catch (e) {
-        console.warn('Background popunder open warning', e);
-      }
-    }
-  }, [isPremium, config, hasPopunderFired]);
+  const closePopunderModal = useCallback(() => {
+    setIsPopunderModalOpen(false);
+  }, []);
 
   const triggerInterstitialIfNeeded = useCallback((targetPath?: string): boolean => {
-    if (isPremium || !config.enabled || !config.interstitial.enabled) {
+    // We now use this floating modal for the pop-under functionality as requested
+    if (isPremium || !config.enabled || !config.popunder.enabled) {
       return false;
     }
 
@@ -139,7 +124,9 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         pendingNavigationPath,
         triggerInterstitialIfNeeded,
         closeInterstitial,
+        isPopunderModalOpen,
         triggerPopunder,
+        closePopunderModal,
         videoWatchCount,
         incrementWatchCount,
         isPremium,

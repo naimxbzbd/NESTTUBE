@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X, ExternalLink, Play, Sparkles, Shield, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useAdsterra } from '../../context/AdsterraContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 
-export const InterstitialAdModal: React.FC = () => {
+export const PopunderAdModal: React.FC = () => {
   const {
-    isInterstitialActive,
-    pendingNavigationPath,
-    closeInterstitial,
+    isPopunderModalOpen,
+    closePopunderModal,
     config,
     isPremium
   } = useAdsterra();
 
-  const navigate = useNavigate();
-  const [countdown, setCountdown] = useState<number>(5);
+  const [countdown, setCountdown] = useState<number>(3);
   const [canSkip, setCanSkip] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isInterstitialActive) {
-      setCountdown(5);
+    if (!isPopunderModalOpen) {
+      setCountdown(3);
       setCanSkip(false);
       return;
     }
@@ -37,34 +34,27 @@ export const InterstitialAdModal: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isInterstitialActive]);
+  }, [isPopunderModalOpen]);
 
-  const handleSkipOrClose = () => {
-    closeInterstitial();
-    if (pendingNavigationPath) {
-      navigate(pendingNavigationPath);
-    }
-  };
+  if (isPremium || !isPopunderModalOpen) return null;
 
-  if (isPremium || !isInterstitialActive) return null;
-
-  const smartLink = config.popunder.smartLinkUrl || config.interstitial.smartLinkUrl;
+  const smartLink = config.popunder.smartLinkUrl;
   const isScript = smartLink?.trim().endsWith('.js');
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="fixed bottom-4 right-4 z-[9999] p-2 animate-in fade-in duration-200 pointer-events-none flex justify-end">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-4xl bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col text-white"
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          className="relative w-full max-w-sm sm:max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col text-white pointer-events-auto"
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 bg-neutral-950/90 border-b border-neutral-800/80">
+          <div className="flex items-center justify-between px-4 py-3 bg-neutral-950/90 border-b border-neutral-800/80">
             <div className="flex items-center gap-2">
-              <span className="bg-amber-500 text-black text-[11px] font-extrabold uppercase px-2 py-0.5 rounded tracking-wide">
-                Advertisement
+              <span className="bg-amber-500 text-black text-[10px] font-extrabold uppercase px-2 py-0.5 rounded tracking-wide">
+                Sponsored
               </span>
             </div>
 
@@ -72,23 +62,23 @@ export const InterstitialAdModal: React.FC = () => {
               {/* Skip Button or Countdown */}
               {canSkip ? (
                 <button
-                  onClick={handleSkipOrClose}
-                  className="bg-white text-black hover:bg-neutral-200 font-bold px-4 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-all shadow-lg cursor-pointer"
+                  onClick={closePopunderModal}
+                  className="bg-white text-black hover:bg-neutral-200 font-bold px-3 py-1 rounded-full text-[11px] flex items-center gap-1.5 transition-all shadow-lg cursor-pointer"
                 >
-                  <span>Skip Ads</span>
+                  <span>Close</span>
                   <X className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <div className="bg-neutral-800/80 text-neutral-300 font-medium px-4 py-1.5 rounded-full text-xs flex items-center gap-2 opacity-80 cursor-not-allowed">
-                  <span>Skip in</span>
-                  <span className="font-bold text-amber-400 text-sm">{countdown}s</span>
+                <div className="bg-neutral-800/80 text-neutral-300 font-medium px-3 py-1 rounded-full text-[11px] flex items-center gap-1.5 opacity-80 cursor-not-allowed">
+                  <span>Close in</span>
+                  <span className="font-bold text-amber-400 text-xs">{countdown}s</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Ad Main Content Body - Display iframe instead of placeholder */}
-          <div className="relative w-full h-[60vh] sm:h-[70vh] bg-white flex flex-col">
+          <div className="relative w-full h-[40vh] sm:h-[45vh] bg-white flex flex-col">
             {smartLink ? (
               isScript ? (
                 <iframe
@@ -106,7 +96,7 @@ export const InterstitialAdModal: React.FC = () => {
                 />
               )
             ) : (
-              <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-400">
+              <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-400 text-sm">
                 Ad URL not configured
               </div>
             )}
