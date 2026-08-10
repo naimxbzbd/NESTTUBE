@@ -24,7 +24,7 @@ export function AdBlockDetector() {
         const isBlocked = 
           fakeAd.offsetHeight === 0 || 
           fakeAd.offsetWidth === 0 || 
-          fakeAd.display === 'none' ||
+          fakeAd.style.display === 'none' ||
           window.getComputedStyle(fakeAd).display === 'none';
 
         if (isBlocked) {
