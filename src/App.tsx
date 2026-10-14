@@ -14,6 +14,7 @@ import { PopunderAdModal } from './components/ads/PopunderAdModal';
 import { SocialBarOverlay } from './components/ads/SocialBarOverlay';
 import { AdSettingsModal } from './components/ads/AdSettingsModal';
 import { AdBlockDetector } from './components/ads/AdBlockDetector';
+import { PremiumModal } from './components/subscription/PremiumModal';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Watch } from './pages/Watch';
@@ -58,8 +59,10 @@ export default function App() {
               </Routes>
               <InterstitialAdModal />
               <PopunderAdModal />
+              <SocialBarOverlay />
               <AdSettingsModal />
               <AdBlockDetector />
+              <PremiumModal />
             </BrowserRouter>
           </QueryClientProvider>
         </MiniPlayerProvider>

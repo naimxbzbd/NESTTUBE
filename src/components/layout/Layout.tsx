@@ -7,12 +7,18 @@ import { MiniPlayer } from '../video/MiniPlayer';
 import { ScrollToTopButton } from '../ui/ScrollToTopButton';
 import { OfflineBanner } from '../ui/OfflineBanner';
 import { AdContainer } from '../ads/AdContainer';
+import { useUserStore } from '../../store/useUserStore';
+import { useAdsterra } from '../../context/AdsterraContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const mainRef = useRef<HTMLDivElement>(null);
+  const { isPremium } = useUserStore();
+  const { config } = useAdsterra();
+
+  const showHeaderBanner = !isPremium && config.enabled && config.placements.headerBanner?.enabled;
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white overflow-hidden font-sans relative pb-14 md:pb-0 transition-colors">
@@ -24,11 +30,13 @@ export function Layout() {
           onCloseMobile={() => setIsMobileMenuOpen(false)} 
         />
         <main ref={mainRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
-          <div className="max-w-7xl mx-auto px-4 pt-2">
-            <div className="bg-neutral-900 rounded-2xl px-2">
-              <AdContainer placement="headerBanner" format="728x90" />
+          {showHeaderBanner && (
+            <div className="max-w-7xl mx-auto px-4 pt-2">
+              <div className="bg-neutral-900 rounded-2xl px-2">
+                <AdContainer placement="headerBanner" format="728x90" />
+              </div>
             </div>
-          </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

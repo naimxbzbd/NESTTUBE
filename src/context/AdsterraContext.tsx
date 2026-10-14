@@ -27,6 +27,9 @@ interface AdsterraContextType {
   // Premium Ad-Free State
   isPremium: boolean;
   togglePremium: () => void;
+  isPremiumModalOpen: boolean;
+  openPremiumModal: () => void;
+  closePremiumModal: () => void;
 }
 
 const AdsterraContext = createContext<AdsterraContextType | undefined>(undefined);
@@ -43,6 +46,10 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [interstitialsShownInSession, setInterstitialsShownInSession] = useState<number>(0);
   const [hasPopunderFired, setHasPopunderFired] = useState<boolean>(false);
   const [isPopunderModalOpen, setIsPopunderModalOpen] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+
+  const openPremiumModal = useCallback(() => setIsPremiumModalOpen(true), []);
+  const closePremiumModal = useCallback(() => setIsPremiumModalOpen(false), []);
 
   useEffect(() => {
     const handleConfigUpdate = (e: Event) => {
@@ -176,6 +183,9 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         resetSessionAdStats,
         isPremium,
         togglePremium,
+        isPremiumModalOpen,
+        openPremiumModal,
+        closePremiumModal,
       }}
     >
       {children}

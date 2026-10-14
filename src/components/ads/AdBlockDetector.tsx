@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Crown, Sparkles } from 'lucide-react';
+import { useUserStore } from '../../store/useUserStore';
+import { useAdsterra } from '../../context/AdsterraContext';
 import { cn } from '../../lib/utils';
 
 export function AdBlockDetector() {
   const [adBlockDetected, setAdBlockDetected] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const { isPremium } = useUserStore();
+  const { openPremiumModal } = useAdsterra();
 
   useEffect(() => {
+    if (isPremium) return;
+
     // Check for adblocker by creating a fake ad element
     const detectAdBlock = () => {
       const fakeAd = document.createElement('div');
@@ -40,9 +46,9 @@ export function AdBlockDetector() {
 
     // Run on mount
     detectAdBlock();
-  }, []);
+  }, [isPremium]);
 
-  if (!adBlockDetected || dismissed) {
+  if (isPremium || !adBlockDetected || dismissed) {
     return null;
   }
 
@@ -56,13 +62,31 @@ export function AdBlockDetector() {
           <h3 className="text-sm font-bold text-neutral-900 dark:text-white mb-1">
             Ad Blocker Detected
           </h3>
-          <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-            It looks like you're using an ad blocker. We rely on ads to keep this platform free. Please consider disabling your ad blocker to support us.
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
+            It looks like you're using an ad blocker. You can support NESTTube by upgrading to our official Ad-Free Premium pass.
           </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setDismissed(true);
+                openPremiumModal();
+              }}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Crown className="w-3.5 h-3.5 fill-black" />
+              <span>Go Ad-Free Premium</span>
+            </button>
+            <button
+              onClick={() => setDismissed(true)}
+              className="px-2.5 py-1.5 text-xs text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
         <button
           onClick={() => setDismissed(true)}
-          className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+          className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>

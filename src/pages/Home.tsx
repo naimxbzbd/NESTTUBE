@@ -10,6 +10,8 @@ import { cn } from '../lib/utils';
 import { fetchCategoryVideos } from '../services/youtube';
 import { useChannelAvatars } from '../hooks/useChannelAvatars';
 import { useYoutubeStore } from '../store/useYoutubeStore';
+import { useUserStore } from '../store/useUserStore';
+import { useAdsterra } from '../context/AdsterraContext';
 import { Tooltip } from '../components/ui/Tooltip';
 
 const categories = [
@@ -96,8 +98,16 @@ export function Home() {
     }
   }, [videos]);
 
+  const { isPremium } = useUserStore();
+  const { config } = useAdsterra();
+
   // Interleave ads into the videos array: 1 ad per row (every 3 videos)
   const interleavedItems = useMemo(() => {
+    // Hide all native ads completely when user is Ad-Free Premium
+    if (isPremium || !config.enabled || !config.placements.homeFeedNative?.enabled) {
+      return videos;
+    }
+
     const items = [];
     let adCounter = 0;
     for (let i = 0; i < videos.length; i += 3) {
@@ -113,7 +123,7 @@ export function Home() {
       adCounter++;
     }
     return items;
-  }, [videos, refreshSeed]);
+  }, [videos, refreshSeed, isPremium, config.enabled, config.placements.homeFeedNative?.enabled]);
 
   const channelIds = videos.map((v: any) => v.snippet?.channelId).filter(Boolean);
   const channelAvatarMap = useChannelAvatars(channelIds);

@@ -56,6 +56,9 @@ export interface UserAccount {
   password?: string;
   name: string;
   isPremium: boolean;
+  premiumPlan?: 'monthly' | 'annual' | 'lifetime';
+  premiumSince?: string;
+  premiumExpiresAt?: string;
 }
 
 export interface UserStoreState {
@@ -114,8 +117,13 @@ export interface UserStoreState {
 
   // Premium / Ad-Free Membership
   isPremium: boolean;
+  premiumPlan: 'monthly' | 'annual' | 'lifetime' | null;
+  premiumSince: string | null;
+  premiumExpiresAt: string | null;
   togglePremium: () => void;
   setIsPremium: (isPremium: boolean) => void;
+  activatePremium: (plan?: 'monthly' | 'annual' | 'lifetime', couponCode?: string) => void;
+  cancelPremium: () => void;
 }
 
 export const useUserStore = create<UserStoreState>()(
@@ -378,25 +386,123 @@ export const useUserStore = create<UserStoreState>()(
       },
       applyCoupon: (couponCode) => {
         const { currentUser, accounts } = get();
-        if (!currentUser) return false;
-        
-        // Let's say valid coupon is 'PREMIUM2026' or 'FREEPREMIUM'
-        const validCoupons = ['PREMIUM2026', 'FREEPREMIUM'];
-        if (validCoupons.includes(couponCode.toUpperCase())) {
-          const updatedUser = { ...currentUser, isPremium: true };
+        const validCoupons = ['PREMIUM2026', 'FREEPREMIUM', 'ADFREE', 'NAIMXBZ', 'VIP2026', 'ADBLOCK', 'STUDENT'];
+        const isMatched = validCoupons.includes(couponCode.trim().toUpperCase());
+        if (!isMatched) return false;
+
+        const now = new Date();
+        const since = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const expires = 'Lifetime Access (Gift Coupon)';
+
+        if (currentUser) {
+          const updatedUser: UserAccount = {
+            ...currentUser,
+            isPremium: true,
+            premiumPlan: 'lifetime',
+            premiumSince: since,
+            premiumExpiresAt: expires,
+          };
           set({
             currentUser: updatedUser,
             isPremium: true,
+            premiumPlan: 'lifetime',
+            premiumSince: since,
+            premiumExpiresAt: expires,
             accounts: accounts.map(a => a.email === currentUser.email ? updatedUser : a)
           });
-          return true;
+        } else {
+          set({
+            isPremium: true,
+            premiumPlan: 'lifetime',
+            premiumSince: since,
+            premiumExpiresAt: expires,
+          });
         }
-        return false;
+        return true;
       },
 
       isPremium: false,
-      togglePremium: () => set((state) => ({ isPremium: !state.isPremium })),
-      setIsPremium: (isPremium: boolean) => set({ isPremium }),
+      premiumPlan: null,
+      premiumSince: null,
+      premiumExpiresAt: null,
+      activatePremium: (plan = 'annual') => {
+        const { currentUser, accounts } = get();
+        const now = new Date();
+        const since = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        let expires = 'Nov 14, 2027';
+        if (plan === 'lifetime') {
+          expires = 'Lifetime Pass • Never Expires';
+        } else if (plan === 'monthly') {
+          const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          expires = nextMonth.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        if (currentUser) {
+          const updatedUser: UserAccount = {
+            ...currentUser,
+            isPremium: true,
+            premiumPlan: plan,
+            premiumSince: since,
+            premiumExpiresAt: expires,
+          };
+          set({
+            currentUser: updatedUser,
+            isPremium: true,
+            premiumPlan: plan,
+            premiumSince: since,
+            premiumExpiresAt: expires,
+            accounts: accounts.map(a => a.email === currentUser.email ? updatedUser : a)
+          });
+        } else {
+          set({
+            isPremium: true,
+            premiumPlan: plan,
+            premiumSince: since,
+            premiumExpiresAt: expires,
+          });
+        }
+      },
+      cancelPremium: () => {
+        const { currentUser, accounts } = get();
+        if (currentUser) {
+          const updatedUser: UserAccount = {
+            ...currentUser,
+            isPremium: false,
+            premiumPlan: undefined,
+            premiumExpiresAt: undefined,
+          };
+          set({
+            currentUser: updatedUser,
+            isPremium: false,
+            premiumPlan: null,
+            premiumExpiresAt: null,
+            accounts: accounts.map(a => a.email === currentUser.email ? updatedUser : a)
+          });
+        } else {
+          set({
+            isPremium: false,
+            premiumPlan: null,
+            premiumExpiresAt: null,
+          });
+        }
+      },
+      togglePremium: () => {
+        const { isPremium, activatePremium, cancelPremium } = get();
+        if (isPremium) {
+          cancelPremium();
+        } else {
+          activatePremium('annual');
+        }
+      },
+      setIsPremium: (isPremium: boolean) => {
+        const { activatePremium, cancelPremium } = get();
+        if (isPremium) {
+          activatePremium('annual');
+        } else {
+          cancelPremium();
+        }
+      },
     }),
     {
       name: 'nesttube_user_store_v1',
