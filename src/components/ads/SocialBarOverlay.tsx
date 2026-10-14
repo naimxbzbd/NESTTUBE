@@ -42,13 +42,14 @@ export const SocialBarOverlay: React.FC = () => {
   if (isPremium || !config.simulationMode || !isVisible || dismissed) return null;
 
   const handleBarClick = () => {
-    triggerPopunder();
     if (config.popunder.smartLinkUrl) {
       try {
         window.open(config.popunder.smartLinkUrl, '_blank');
       } catch (e) {
         console.warn('Smartlink click error', e);
       }
+    } else {
+      triggerPopunder();
     }
   };
 

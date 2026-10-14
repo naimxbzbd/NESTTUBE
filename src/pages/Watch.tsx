@@ -30,7 +30,15 @@ export function Watch() {
   const [floatingToast, setFloatingToast] = useState(false);
 
   const { openMiniPlayer } = useMiniPlayer();
-  const { incrementWatchCount } = useAdsterra();
+  const { incrementWatchCount, triggerInterstitialIfNeeded } = useAdsterra();
+
+  const handleRelatedVideoClick = (e: React.MouseEvent, vid: string) => {
+    const watchPath = `/watch/${vid}`;
+    const triggered = triggerInterstitialIfNeeded(watchPath);
+    if (triggered) {
+      e.preventDefault();
+    }
+  };
 
   const toggleAutoplay = () => {
     setIsAutoplay((prev) => {
@@ -407,11 +415,18 @@ export function Watch() {
                
                return (
                  <div key={vid} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
-                    <Link to={`/watch/${vid}`} className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800">
+                    <Link 
+                      to={`/watch/${vid}`} 
+                      onClick={(e) => handleRelatedVideoClick(e, vid)}
+                      className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800"
+                    >
                       <img src={v.snippet.thumbnails?.medium?.url} alt={v.snippet.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
                     </Link>
                     <div className="flex flex-col flex-1">
-                       <Link to={`/watch/${vid}`}>
+                       <Link 
+                         to={`/watch/${vid}`}
+                         onClick={(e) => handleRelatedVideoClick(e, vid)}
+                       >
                          <h4 className="text-sm font-semibold leading-snug line-clamp-2 text-[#0f0f0f] dark:text-[#f1f1f1]" dangerouslySetInnerHTML={{ __html: v.snippet.title }}></h4>
                        </Link>
                        <Link to={`/channel/${v.snippet.channelId}`} className="text-xs text-[#606060] dark:text-[#aaaaaa] mt-1 hover:text-[#0f0f0f] dark:hover:text-[#f1f1f1] transition-colors">{v.snippet.channelTitle}</Link>

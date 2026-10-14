@@ -18,9 +18,12 @@ interface AdsterraContextType {
   isPopunderModalOpen: boolean;
   triggerPopunder: () => void;
   closePopunderModal: () => void;
-  // Counters
+  // Throttling and Counters
   videoWatchCount: number;
   incrementWatchCount: () => void;
+  clicksSinceLastInterstitial: number;
+  interstitialsShownInSession: number;
+  resetSessionAdStats: () => void;
   // Premium Ad-Free State
   isPremium: boolean;
   togglePremium: () => void;
@@ -36,6 +39,8 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [pendingNavigationPath, setPendingNavigationPath] = useState<string | null>(null);
   const [lastInterstitialTime, setLastInterstitialTime] = useState<number>(0);
   const [videoWatchCount, setVideoWatchCount] = useState<number>(0);
+  const [clicksSinceLastInterstitial, setClicksSinceLastInterstitial] = useState<number>(0);
+  const [interstitialsShownInSession, setInterstitialsShownInSession] = useState<number>(0);
   const [hasPopunderFired, setHasPopunderFired] = useState<boolean>(false);
   const [isPopunderModalOpen, setIsPopunderModalOpen] = useState(false);
 
@@ -77,35 +82,72 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const triggerPopunder = useCallback(() => {
     if (isPremium || !config.enabled || !config.popunder.enabled) return;
+    if (isInterstitialActive) return; // Prevent popunder if interstitial popup is active
     setIsPopunderModalOpen(true);
-  }, [isPremium, config]);
+  }, [isPremium, config, isInterstitialActive]);
 
   const closePopunderModal = useCallback(() => {
     setIsPopunderModalOpen(false);
   }, []);
 
+  const resetSessionAdStats = useCallback(() => {
+    setClicksSinceLastInterstitial(0);
+    setInterstitialsShownInSession(0);
+    setLastInterstitialTime(0);
+  }, []);
+
   const triggerInterstitialIfNeeded = useCallback((targetPath?: string): boolean => {
-    // We now use this floating modal for the pop-under functionality as requested
-    if (isPremium || !config.enabled || !config.popunder.enabled) {
+    if (isPremium || !config.enabled || !config.interstitial.enabled) {
+      return false;
+    }
+
+    // Check optional maximum ads per session cap
+    const maxPerSession = config.interstitial.maxPerSession ?? 0;
+    if (maxPerSession > 0 && interstitialsShownInSession >= maxPerSession) {
       return false;
     }
 
     const now = Date.now();
-    const cooldownMs = (config.interstitial.cooldownSeconds || 30) * 1000;
-    const isCooldownPassed = now - lastInterstitialTime >= cooldownMs;
+    const cooldownMs = Math.max(5, config.interstitial.cooldownSeconds || 30) * 1000;
+    const isCooldownPassed = lastInterstitialTime === 0 || (now - lastInterstitialTime >= cooldownMs);
 
-    const nextWatchCount = videoWatchCount + 1;
-    const isThresholdReached = nextWatchCount % (config.interstitial.showAfterVideosCount || 2) === 0;
+    const targetInterval = Math.max(1, config.interstitial.showAfterVideosCount || 2);
+    const nextClicks = clicksSinceLastInterstitial + 1;
+    setClicksSinceLastInterstitial(nextClicks);
 
-    if (isCooldownPassed && (isThresholdReached || config.interstitial.triggerOnWatchClick)) {
+    const isStrict = config.interstitial.throttleStrict ?? true;
+    const isIntervalReached = nextClicks >= targetInterval;
+
+    let shouldTrigger = false;
+    if (isStrict) {
+      // Strict throttling: must satisfy BOTH the click interval and the cooldown
+      shouldTrigger = isIntervalReached && isCooldownPassed;
+    } else {
+      // Loose mode: trigger on target interval or if targetInterval is 1 on every cooldown pass
+      if (targetInterval === 1) {
+        shouldTrigger = isCooldownPassed;
+      } else {
+        shouldTrigger = isIntervalReached && isCooldownPassed;
+      }
+    }
+
+    if (shouldTrigger) {
+      setIsPopunderModalOpen(false); // Ensure only a single popup page is displayed
       setIsInterstitialActive(true);
       setPendingNavigationPath(targetPath || null);
       setLastInterstitialTime(now);
+      setClicksSinceLastInterstitial(0);
+      setInterstitialsShownInSession((prev) => prev + 1);
       return true;
     }
-
     return false;
-  }, [isPremium, config, lastInterstitialTime, videoWatchCount]);
+  }, [
+    isPremium,
+    config,
+    lastInterstitialTime,
+    clicksSinceLastInterstitial,
+    interstitialsShownInSession,
+  ]);
 
   const closeInterstitial = useCallback(() => {
     setIsInterstitialActive(false);
@@ -129,6 +171,9 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         closePopunderModal,
         videoWatchCount,
         incrementWatchCount,
+        clicksSinceLastInterstitial,
+        interstitialsShownInSession,
+        resetSessionAdStats,
         isPremium,
         togglePremium,
       }}

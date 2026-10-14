@@ -6,6 +6,58 @@ export interface AdPlacementConfig {
   height?: number;
 }
 
+export type InterstitialThrottlePreset = 'aggressive' | 'balanced' | 'relaxed' | 'minimal' | 'custom';
+
+export const INTERSTITIAL_THROTTLE_PRESETS: Record<
+  Exclude<InterstitialThrottlePreset, 'custom'>,
+  {
+    name: string;
+    description: string;
+    showAfterVideosCount: number;
+    cooldownSeconds: number;
+    throttleStrict: boolean;
+    badge: string;
+    color: string;
+  }
+> = {
+  aggressive: {
+    name: 'Aggressive',
+    description: 'High frequency — triggers on every video with a fast 15s cooldown',
+    showAfterVideosCount: 1,
+    cooldownSeconds: 15,
+    throttleStrict: false,
+    badge: 'High Monetization',
+    color: 'text-rose-500 bg-rose-500/10 border-rose-500/30',
+  },
+  balanced: {
+    name: 'Balanced',
+    description: 'Standard balance — triggers once every 2 videos with a 30s cooldown',
+    showAfterVideosCount: 2,
+    cooldownSeconds: 30,
+    throttleStrict: true,
+    badge: 'Recommended',
+    color: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
+  },
+  relaxed: {
+    name: 'Relaxed (High UX)',
+    description: 'User-friendly — limits ads to once every 3 videos and 60s cooldown',
+    showAfterVideosCount: 3,
+    cooldownSeconds: 60,
+    throttleStrict: true,
+    badge: 'High User Retention',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30',
+  },
+  minimal: {
+    name: 'Minimal Interruption',
+    description: 'Ultra light — triggers only once every 5 videos with a 2-minute cooldown',
+    showAfterVideosCount: 5,
+    cooldownSeconds: 120,
+    throttleStrict: true,
+    badge: 'Maximum UX',
+    color: 'text-blue-500 bg-blue-500/10 border-blue-500/30',
+  },
+};
+
 export interface InterstitialConfig {
   enabled: boolean;
   key: string;
@@ -13,6 +65,9 @@ export interface InterstitialConfig {
   cooldownSeconds: number; // Minimum time between interstitials in seconds
   triggerOnWatchClick: boolean; // Trigger when user clicks to watch a video
   showAfterVideosCount: number; // Trigger every N video views
+  frequencyThrottle?: InterstitialThrottlePreset; // Throttle frequency mode
+  throttleStrict?: boolean; // When true, both count and cooldown interval must be satisfied
+  maxPerSession?: number; // Max ads per user session (0 = unlimited)
 }
 
 export interface PopunderConfig {
@@ -28,11 +83,14 @@ export interface SocialBarConfig {
   position: 'bottom-right' | 'bottom-center' | 'bottom-left';
 }
 
+export type BannerMediaType = 'video_gif' | 'gif_only' | 'classic';
+
 export interface AdsterraConfig {
   enabled: boolean;
   allowAdultAds: boolean; // Set to false to disable adult / 18+ ads
   simulationMode: boolean; // Shows sleek sponsored fallback ads if true or if no valid key is provided
   publisherId: string;
+  bannerMediaType?: BannerMediaType; // Support looping video / animated GIF in banners
   placements: {
     headerBanner: AdPlacementConfig;
     homeFeedNative: AdPlacementConfig;
@@ -49,6 +107,7 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
   allowAdultAds: true, // Enabled
   simulationMode: false,
   publisherId: 'adsterra-publisher',
+  bannerMediaType: 'video_gif',
   placements: {
     headerBanner: {
       enabled: true,
@@ -84,6 +143,9 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
     cooldownSeconds: 30,
     triggerOnWatchClick: true,
     showAfterVideosCount: 2,
+    frequencyThrottle: 'balanced',
+    throttleStrict: true,
+    maxPerSession: 0,
   },
   popunder: {
     enabled: true,
@@ -108,6 +170,7 @@ export function getAdsterraConfig(): AdsterraConfig {
       return {
         ...DEFAULT_ADSTERRA_CONFIG,
         ...parsed,
+        bannerMediaType: (parsed.bannerMediaType as BannerMediaType) || 'video_gif',
         placements: {
           ...DEFAULT_ADSTERRA_CONFIG.placements,
           ...(parsed.placements || {}),

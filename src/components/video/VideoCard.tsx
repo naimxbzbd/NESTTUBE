@@ -50,8 +50,9 @@ export function VideoCard({
     const triggered = triggerInterstitialIfNeeded(watchPath);
     if (triggered) {
       e.preventDefault();
+      return; // Only show 1 popup: do not trigger popunder when interstitial is already active
     }
-    // Also trigger popunder modal on content click
+    // Only trigger popunder if interstitial was not triggered
     triggerPopunder();
   };
 
