@@ -66,9 +66,12 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    // Pop-under background script completely disabled as per requirements.
-    // It will now only trigger as an in-page floating modal on navigation.
-  }, [isPremium, config.enabled, config.popunder.enabled, config.simulationMode]);
+    // Ensure any residual social bar script or elements are removed
+    const socialScript = document.getElementById('adsterra-socialbar-script');
+    if (socialScript) {
+      socialScript.remove();
+    }
+  }, []);
 
   const updateConfig = useCallback((newConfig: AdsterraConfig) => {
     setConfig(newConfig);

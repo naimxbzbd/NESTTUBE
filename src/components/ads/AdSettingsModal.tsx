@@ -115,7 +115,7 @@ export const AdSettingsModal: React.FC = () => {
                   )}
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
-                  When enabled, all Adsterra banners, native feed ads, interstitials, social bars, and popunders are completely hidden. Must redeem a coupon in your account menu.
+                  When enabled, all Adsterra banners, native feed ads, interstitials, and popunders are completely hidden. Must redeem a coupon in your account menu.
                 </p>
               </div>
             </div>

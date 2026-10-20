@@ -3,7 +3,7 @@ import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2 } from 'lucide-react';
 import { cn, handleThumbnailError } from '../lib/utils';
-import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails } from '../services/youtube';
+import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails, getPlayerRecommendations } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
 import { addToWatchHistory } from '../lib/watchHistory';
 import { useUserStore, VideoItem } from '../store/useUserStore';
@@ -28,6 +28,7 @@ export function Watch() {
   const [isAutoplay, setIsAutoplay] = useState(true);
   const [autoplayToast, setAutoplayToast] = useState<string | null>(null);
   const [floatingToast, setFloatingToast] = useState(false);
+  const [recommendationFilter, setRecommendationFilter] = useState<'All' | 'Related' | 'For You' | 'From Channel' | 'From Searches'>('All');
 
   const { openMiniPlayer } = useMiniPlayer();
   const { incrementWatchCount, triggerInterstitialIfNeeded } = useAdsterra();
@@ -73,15 +74,30 @@ export function Watch() {
     enabled: !!id
   });
 
-  const { data: relatedData } = useQuery({
-    queryKey: ['relatedVideos', id],
-    queryFn: () => searchVideos('programming technology', 15),
-    enabled: !!id
+  const video = videoData?.items?.[0];
+
+  const { data: relatedVideos = [] } = useQuery({
+    queryKey: [
+      'playerRecommendations',
+      id,
+      video?.snippet?.title,
+      video?.snippet?.channelTitle,
+      recommendationFilter,
+    ],
+    queryFn: () => {
+      return getPlayerRecommendations(
+        id,
+        video?.snippet?.title,
+        video?.snippet?.channelTitle,
+        (video as any)?.category,
+        recommendationFilter,
+        30
+      );
+    },
+    enabled: !!id,
   });
 
-  const video = videoData?.items?.[0];
   const comments = commentsData?.items || [];
-  const relatedVideos = relatedData?.items || [];
 
   const { data: channelData } = useQuery({
     queryKey: ['channel', video?.snippet?.channelId],
@@ -99,9 +115,11 @@ export function Watch() {
         channelId: video.snippet?.channelId || '',
         views: video.statistics?.viewCount,
         publishedAt: video.snippet?.publishedAt,
-        duration: video.contentDetails?.duration,
+        duration: formatDuration(video.contentDetails?.duration),
         thumbnailUrl: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url,
-        avatarColor: 'bg-blue-600'
+        description: video.snippet?.description || '',
+        avatarColor: 'bg-blue-600',
+        progressPercentage: 55,
       });
 
       // Increment today's watch time by 2 minutes on video load
@@ -404,38 +422,75 @@ export function Watch() {
         </div>
       </div>
 
-      {/* Secondary Column - Suggested Videos */}
+      {/* Secondary Column - Suggested Videos & Recommendations */}
       <div className="w-full lg:w-[400px] shrink-0 flex flex-col gap-3">
         {/* Adsterra Sidebar 300x250 Ad */}
         <AdContainer placement="watchSidebar" format="300x250" className="mb-2" />
 
-        {relatedVideos.map((v: any) => {
-               const vid = typeof v.id === 'string' ? v.id : v.id.videoId;
-               if (!vid) return null;
-               
-               return (
-                 <div key={vid} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
-                    <Link 
-                      to={`/watch/${vid}`} 
-                      onClick={(e) => handleRelatedVideoClick(e, vid)}
-                      className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800"
-                    >
-                      <img src={v.snippet.thumbnails?.medium?.url} alt={v.snippet.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
-                    </Link>
-                    <div className="flex flex-col flex-1">
-                       <Link 
-                         to={`/watch/${vid}`}
-                         onClick={(e) => handleRelatedVideoClick(e, vid)}
-                       >
-                         <h4 className="text-sm font-semibold leading-snug line-clamp-2 text-[#0f0f0f] dark:text-[#f1f1f1]" dangerouslySetInnerHTML={{ __html: v.snippet.title }}></h4>
-                       </Link>
-                       <Link to={`/channel/${v.snippet.channelId}`} className="text-xs text-[#606060] dark:text-[#aaaaaa] mt-1 hover:text-[#0f0f0f] dark:hover:text-[#f1f1f1] transition-colors">{v.snippet.channelTitle}</Link>
-                       <div className="text-xs text-[#606060] dark:text-[#aaaaaa]">{formatPublishedAt(v.snippet.publishedAt)}</div>
-                    </div>
-                 </div>
-               );
-            })}
+        {/* Dynamic Recommendation Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          {(['All', 'For You', 'Related', 'From Channel', 'From Searches'] as const).map((tab) => {
+            const isActive = recommendationFilter === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setRecommendationFilter(tab)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1',
+                  isActive
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
+                    : 'bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-700 dark:text-neutral-200'
+                )}
+              >
+                {tab === 'For You' && <Sparkles className="w-3 h-3 fill-current text-amber-500" />}
+                <span>{tab}</span>
+              </button>
+            );
+          })}
         </div>
+
+        {relatedVideos.map((v: any) => {
+          const vid = typeof v.id === 'string' ? v.id : v.id.videoId;
+          if (!vid) return null;
+
+          return (
+            <div key={vid} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
+              <Link 
+                to={`/watch/${vid}`} 
+                onClick={(e) => handleRelatedVideoClick(e, vid)}
+                className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800"
+              >
+                <img src={v.snippet?.thumbnails?.medium?.url || v.snippet?.thumbnails?.default?.url} alt={v.snippet?.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
+                {v.contentDetails?.duration && (
+                  <div className="absolute bottom-1 right-1 bg-black/80 text-white px-1.5 py-0.5 rounded text-[11px] font-medium">
+                    {formatDuration(v.contentDetails.duration)}
+                  </div>
+                )}
+              </Link>
+              <div className="flex flex-col flex-1 min-w-0">
+                <Link 
+                  to={`/watch/${vid}`}
+                  onClick={(e) => handleRelatedVideoClick(e, vid)}
+                >
+                  <h4 className="text-sm font-semibold leading-snug line-clamp-2 text-[#0f0f0f] dark:text-[#f1f1f1]" dangerouslySetInnerHTML={{ __html: v.snippet?.title || '' }}></h4>
+                </Link>
+                <Link to={`/channel/${v.snippet?.channelId}`} className="text-xs text-[#606060] dark:text-[#aaaaaa] mt-1 hover:text-[#0f0f0f] dark:hover:text-[#f1f1f1] transition-colors truncate">
+                  {v.snippet?.channelTitle}
+                </Link>
+                <div className="text-xs text-[#606060] dark:text-[#aaaaaa]">
+                  {v.statistics?.viewCount ? `${formatViewCount(v.statistics.viewCount)} views • ` : ''}{formatPublishedAt(v.snippet?.publishedAt)}
+                </div>
+                {v.recommendationReason && (
+                  <div className="flex items-center gap-1 mt-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded w-fit max-w-full">
+                    <Sparkles className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">{v.recommendationReason}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Save to Playlist Modal */}
       <SaveToPlaylistModal

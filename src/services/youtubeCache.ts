@@ -10,11 +10,13 @@ const LAST_FEED_KEY = 'nesttube_last_feed';
 // Maximum cached items in video index to prevent localStorage bloat
 const MAX_CACHED_VIDEOS = 120;
 
+const isStorageAvailable = () => typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+
 /**
  * Save video items to local storage video index
  */
 export const cacheVideoItems = (videos: any[]) => {
-  if (!Array.isArray(videos) || videos.length === 0) return;
+  if (!isStorageAvailable() || !Array.isArray(videos) || videos.length === 0) return;
 
   try {
     const existingStr = localStorage.getItem(ALL_VIDEOS_INDEX_KEY);
@@ -122,7 +124,7 @@ export const cacheSingleVideoDetail = (videoId: string, videoObj: any) => {
  * Cache feed result by category
  */
 export const cacheFeedResponse = (categoryKey: string, responseData: any) => {
-  if (!responseData || !Array.isArray(responseData.items)) return;
+  if (!isStorageAvailable() || !responseData || !Array.isArray(responseData.items)) return;
   try {
     const cacheData = {
       ...responseData,
@@ -140,29 +142,37 @@ export const cacheFeedResponse = (categoryKey: string, responseData: any) => {
  * Retrieve cached feed by category or general fallback
  */
 export const getCachedFeed = (categoryKey: string): any | null => {
+  if (!isStorageAvailable()) return null;
   try {
     const specificStr = localStorage.getItem(`${FEED_CACHE_KEY_PREFIX}${categoryKey}`);
     if (specificStr) {
-      return JSON.parse(specificStr);
+      const parsed = JSON.parse(specificStr);
+      if (parsed?.items && parsed.items.length > 0) {
+        return parsed;
+      }
     }
 
-    const lastFeedStr = localStorage.getItem(LAST_FEED_KEY);
-    if (lastFeedStr) {
-      return JSON.parse(lastFeedStr);
-    }
+    // Only fallback to LAST_FEED_KEY or global index if categoryKey is explicitly 'All', 'popular', or empty
+    const isGlobal = !categoryKey || categoryKey === 'All' || categoryKey === 'popular';
+    if (isGlobal) {
+      const lastFeedStr = localStorage.getItem(LAST_FEED_KEY);
+      if (lastFeedStr) {
+        return JSON.parse(lastFeedStr);
+      }
 
-    // Fallback: build response from index items
-    const indexStr = localStorage.getItem(ALL_VIDEOS_INDEX_KEY);
-    if (indexStr) {
-      const indexMap = JSON.parse(indexStr);
-      const items = Object.values(indexMap);
-      if (items.length > 0) {
-        return {
-          kind: 'youtube#videoListResponse',
-          items: items.slice(0, 30),
-          pageInfo: { totalResults: items.length, resultsPerPage: 30 },
-          _fromOfflineCache: true,
-        };
+      // Fallback: build response from index items
+      const indexStr = localStorage.getItem(ALL_VIDEOS_INDEX_KEY);
+      if (indexStr) {
+        const indexMap = JSON.parse(indexStr);
+        const items = Object.values(indexMap);
+        if (items.length > 0) {
+          return {
+            kind: 'youtube#videoListResponse',
+            items: items.slice(0, 30),
+            pageInfo: { totalResults: items.length, resultsPerPage: 30 },
+            _fromOfflineCache: true,
+          };
+        }
       }
     }
   } catch (err) {

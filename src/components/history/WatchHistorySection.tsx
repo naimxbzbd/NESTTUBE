@@ -105,6 +105,13 @@ export function WatchHistorySection() {
                       {formatDuration(item.duration)}
                     </div>
                   )}
+                  {/* Red Watch Progress Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-600/60 overflow-hidden">
+                    <div
+                      className="h-full bg-red-600"
+                      style={{ width: `${item.progressPercentage || 50}%` }}
+                    />
+                  </div>
                 </Link>
                 <button
                   onClick={(e) => {

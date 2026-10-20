@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { CheckCircle2, MoreVertical, ListPlus, Clock } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { CheckCircle2, MoreVertical, ListPlus, Clock, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn, handleThumbnailError } from '../../lib/utils';
 import { formatDuration, formatPublishedAt, formatViewCount } from '../../lib/formatters';
@@ -21,6 +21,8 @@ export interface VideoCardProps {
   avatarColor?: string;
   channelAvatarUrl?: string;
   verified?: boolean;
+  recommendationReason?: string;
+  recommendationType?: 'search' | 'interest' | 'channel' | 'related' | 'trending';
 }
 
 export function VideoCard({
@@ -34,7 +36,9 @@ export function VideoCard({
   thumbnailUrl,
   thumbnailColor,
   channelAvatarUrl,
-  verified
+  verified,
+  recommendationReason,
+  recommendationType,
 }: VideoCardProps) {
   const [avatarError, setAvatarError] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -132,6 +136,12 @@ export function VideoCard({
           <div className="text-sm text-[#606060] dark:text-[#aaaaaa]">
             {views ? formatViewCount(views) : '0'} views • {publishedAt ? formatPublishedAt(publishedAt) : ''}
           </div>
+          {recommendationReason && (
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-md w-fit">
+              <Sparkles className="w-3 h-3 shrink-0" />
+              <span className="truncate max-w-[210px]">{recommendationReason}</span>
+            </div>
+          )}
         </div>
         
         <div className="absolute right-0 top-0" ref={menuRef}>

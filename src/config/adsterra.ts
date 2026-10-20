@@ -154,8 +154,8 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
     triggerOnFirstClick: true,
   },
   socialBar: {
-    enabled: true,
-    key: 'a9e3bd5d92edf03e7a2106e5243a4490',
+    enabled: false,
+    key: '',
     position: 'bottom-right',
   },
 };
@@ -186,6 +186,7 @@ export function getAdsterraConfig(): AdsterraConfig {
         socialBar: {
           ...DEFAULT_ADSTERRA_CONFIG.socialBar,
           ...(parsed.socialBar || {}),
+          enabled: false,
         },
       };
     }

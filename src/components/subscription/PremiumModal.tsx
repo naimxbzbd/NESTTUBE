@@ -188,7 +188,7 @@ export const PremiumModal: React.FC = () => {
                   Welcome to Ad-Free Premium!
                 </h4>
                 <p className="text-sm text-neutral-300 max-w-md mx-auto leading-relaxed">
-                  All Adsterra banners (728x90, 300x250), video interstitials, popunders, social bars, and feed ads have been completely deactivated.
+                  All Adsterra banners (728x90, 300x250), video interstitials, popunders, and feed ads have been completely deactivated.
                 </p>
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 max-w-sm mx-auto text-xs text-amber-300">
                   <div className="font-bold mb-1">👑 Active Plan: {selectedPlan.toUpperCase()} PASS</div>
@@ -254,7 +254,7 @@ export const PremiumModal: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Social Bar Overlay Disabled</span>
+                      <span>Zero Floating Overlays or Popups</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-emerald-400 shrink-0" />

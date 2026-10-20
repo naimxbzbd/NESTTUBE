@@ -187,7 +187,7 @@ export function SearchInput({
     setIsOpen(false);
 
     if (videoId) {
-      navigate(`/watch?v=${videoId}`);
+      navigate(`/watch/${videoId}`);
     } else {
       navigate(`/search?q=${encodeURIComponent(finalQuery)}`);
     }
@@ -290,6 +290,20 @@ export function SearchInput({
               className="p-1 mr-1 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full text-neutral-500 dark:text-white/60 cursor-pointer"
             >
               <X className="w-4 h-4" />
+            </button>
+          </Tooltip>
+        )}
+
+        {/* Voice-to-Text Microphone Button inside search bar */}
+        {onOpenVoiceModal && (
+          <Tooltip content="Search with your voice" position="bottom">
+            <button
+              type="button"
+              onClick={onOpenVoiceModal}
+              className="p-1.5 mr-1 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full text-neutral-600 dark:text-white/70 hover:text-red-600 dark:hover:text-red-500 transition-colors cursor-pointer shrink-0"
+              aria-label="Search with your voice"
+            >
+              <Mic className="w-4 h-4" />
             </button>
           </Tooltip>
         )}
