@@ -14,7 +14,8 @@ interface AdsterraContextType {
   pendingNavigationPath: string | null;
   triggerInterstitialIfNeeded: (targetPath?: string) => boolean;
   closeInterstitial: () => void;
-  // Popunder trigger
+  // Direct Link & Popunder
+  openDirectLink: (overrideUrl?: string) => void;
   isPopunderModalOpen: boolean;
   triggerPopunder: () => void;
   closePopunderModal: () => void;
@@ -90,11 +91,36 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setVideoWatchCount((prev) => prev + 1);
   }, []);
 
+  const openDirectLink = useCallback((overrideUrl?: string) => {
+    if (isPremium) return;
+    let targetUrl = overrideUrl || config.directLink?.smartLinkUrl || config.interstitial?.smartLinkUrl || config.popunder?.smartLinkUrl;
+    if (!targetUrl || targetUrl.trim().endsWith('.js')) {
+      targetUrl = 'https://pl30753698.effectivecpmnetwork.com/';
+    }
+    try {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      console.warn('Failed to open direct link', err);
+    }
+  }, [isPremium, config]);
+
   const triggerPopunder = useCallback(() => {
-    if (isPremium || !config.enabled || !config.popunder.enabled) return;
-    if (isInterstitialActive) return; // Prevent popunder if interstitial popup is active
-    setIsPopunderModalOpen(true);
-  }, [isPremium, config, isInterstitialActive]);
+    if (isPremium || !config.enabled) return;
+    if (isInterstitialActive) return;
+
+    if (config.directLink?.enabled) {
+      if (config.directLink.triggerMode === 'new_tab') {
+        openDirectLink();
+      } else {
+        setIsPopunderModalOpen(true);
+      }
+      return;
+    }
+
+    if (config.popunder?.enabled) {
+      setIsPopunderModalOpen(true);
+    }
+  }, [isPremium, config, isInterstitialActive, openDirectLink]);
 
   const closePopunderModal = useCallback(() => {
     setIsPopunderModalOpen(false);
@@ -176,6 +202,7 @@ export const AdsterraProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         pendingNavigationPath,
         triggerInterstitialIfNeeded,
         closeInterstitial,
+        openDirectLink,
         isPopunderModalOpen,
         triggerPopunder,
         closePopunderModal,

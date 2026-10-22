@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
 import { cn, handleThumbnailError } from '../lib/utils';
 import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails, getPlayerRecommendations } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
@@ -29,6 +29,9 @@ export function Watch() {
   const [autoplayToast, setAutoplayToast] = useState<string | null>(null);
   const [floatingToast, setFloatingToast] = useState(false);
   const [recommendationFilter, setRecommendationFilter] = useState<'All' | 'Related' | 'For You' | 'From Channel' | 'From Searches'>('All');
+  const [playerKey, setPlayerKey] = useState(0);
+  const [useNoCookie, setUseNoCookie] = useState(true);
+  const [showPlayerHelp, setShowPlayerHelp] = useState(false);
 
   const { openMiniPlayer } = useMiniPlayer();
   const { incrementWatchCount, triggerInterstitialIfNeeded } = useAdsterra();
@@ -209,12 +212,57 @@ export function Watch() {
         {/* Video Player Box */}
         <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden relative shadow-2xl group">
           <iframe
-            src={`https://www.youtube.com/embed/${id}?autoplay=${isAutoplay ? '1' : '0'}&rel=0${playlistIds ? `&playlist=${playlistIds}` : ''}`}
+            key={`${id}-${playerKey}-${useNoCookie ? 'nocookie' : 'standard'}`}
+            src={`${useNoCookie ? 'https://www.youtube-nocookie.com' : 'https://www.youtube.com'}/embed/${id}?autoplay=${
+              isAutoplay ? '1' : '0'
+            }&rel=0&enablejsapi=1&playsinline=1${playlistIds ? `&playlist=${playlistIds}` : ''}${
+              typeof window !== 'undefined' && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : ''
+            }`}
             title={video.snippet.title}
             className="w-full h-full border-0"
+            referrerPolicy="strict-origin-when-cross-origin"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
+        </div>
+
+        {/* Player Options & Troubleshooting Toolbar */}
+        <div className="flex items-center justify-between text-xs px-1 text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPlayerKey((k) => k + 1)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium transition-colors cursor-pointer"
+              title="Reload the video player without refreshing the whole page"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Reload Player</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setUseNoCookie((prev) => !prev);
+                setPlayerKey((k) => k + 1);
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-700 dark:text-neutral-300 font-medium transition-colors cursor-pointer"
+              title="Toggle between privacy-enhanced youtube-nocookie and standard youtube domain"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Engine: {useNoCookie ? 'NoCookie' : 'Standard'}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://www.youtube.com/watch?v=${id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              title="Open this video directly on YouTube"
+            >
+              <span>Watch on YouTube</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
         </div>
 
 
@@ -449,18 +497,25 @@ export function Watch() {
           })}
         </div>
 
-        {relatedVideos.map((v: any) => {
-          const vid = typeof v.id === 'string' ? v.id : v.id.videoId;
+        {relatedVideos.map((v: any, index: number) => {
+          const vid = typeof v.id === 'string' ? v.id : v.id?.videoId;
           if (!vid) return null;
 
           return (
-            <div key={vid} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
+            <div key={`rec-${vid}-${index}`} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
               <Link 
                 to={`/watch/${vid}`} 
                 onClick={(e) => handleRelatedVideoClick(e, vid)}
                 className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800"
               >
-                <img src={v.snippet?.thumbnails?.medium?.url || v.snippet?.thumbnails?.default?.url} alt={v.snippet?.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
+                <img
+                  src={v.snippet?.thumbnails?.medium?.url || v.snippet?.thumbnails?.default?.url}
+                  alt={v.snippet?.title}
+                  className="w-full h-full object-cover"
+                  onError={handleThumbnailError}
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                />
                 {v.contentDetails?.duration && (
                   <div className="absolute bottom-1 right-1 bg-black/80 text-white px-1.5 py-0.5 rounded text-[11px] font-medium">
                     {formatDuration(v.contentDetails.duration)}

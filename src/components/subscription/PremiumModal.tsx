@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useUserStore } from '../../store/useUserStore';
 import { useAdsterra } from '../../context/AdsterraContext';
+import { usePaymentStore } from '../../store/usePaymentStore';
 import { cn } from '../../lib/utils';
 
 export type PlanType = 'annual' | 'monthly' | 'lifetime';
@@ -37,6 +38,7 @@ export const PremiumModal: React.FC = () => {
   } = useUserStore();
 
   const { isPremiumModalOpen, closePremiumModal } = useAdsterra();
+  const { openBkashModal } = usePaymentStore();
 
   // Subscription state
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('annual');
@@ -346,6 +348,42 @@ export const PremiumModal: React.FC = () => {
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* bKash / Nagad / Rocket Bangladeshi Payment Action Banner */}
+                <div 
+                  onClick={() => {
+                    closePremiumModal();
+                    openBkashModal();
+                  }}
+                  className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-500/15 via-orange-500/15 to-purple-500/15 border border-pink-500/40 hover:border-pink-500/70 transition-all flex items-center justify-between gap-3 cursor-pointer group shadow-sm hover:shadow-pink-500/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-600 via-orange-500 to-purple-600 text-white font-black flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition-transform">
+                      ৳
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs text-white group-hover:text-amber-400 transition-colors">
+                          বিকাশ / নগদ / রকেট দিয়ে প্রো কিনুন (Send Money)
+                        </span>
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-amber-500 text-black rounded-full">
+                          Personal: 01703223141
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-neutral-300 block mt-0.5">
+                        ১ মাস (১০০ ৳) • ৬ মাস (৫০০ ৳) • ১ বছর (৯০০ ৳) — TrxID দিয়ে ভেরিফাই করুন
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-extrabold text-xs shrink-0 flex items-center gap-1.5 shadow-md group-hover:scale-105 transition-all cursor-pointer"
+                  >
+                    <span>Pay with bKash</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 {/* Plan Selection Cards */}

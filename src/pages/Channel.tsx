@@ -43,18 +43,37 @@ export function Channel() {
   return (
     <div className="flex flex-col min-h-full text-neutral-900 dark:text-white transition-colors">
       {/* Banner */}
-      <div className="w-full h-32 md:h-48 lg:h-64 bg-gradient-to-r from-purple-900 via-indigo-800 to-blue-900 relative object-cover overflow-hidden">
-        {brandingSettings?.image?.bannerExternalUrl && (
-          <img src={brandingSettings.image.bannerExternalUrl} alt="Banner" className="w-full h-full object-cover" onError={handleThumbnailError} />
+      <div className="w-full h-36 md:h-52 lg:h-68 bg-gradient-to-r from-red-950 via-neutral-900 to-blue-950 relative overflow-hidden flex items-center justify-center">
+        {brandingSettings?.image?.bannerExternalUrl ? (
+          <img
+            src={brandingSettings.image.bannerExternalUrl}
+            alt="Banner"
+            className="w-full h-full object-cover"
+            onError={handleThumbnailError}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-tr from-neutral-900 via-neutral-800 to-neutral-950 flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+            <h2 className="text-xl sm:text-3xl font-black text-white/30 tracking-widest uppercase select-none">
+              {snippet.title}
+            </h2>
+          </div>
         )}
       </div>
 
       {/* Channel Header */}
       <div className="px-6 md:px-16 lg:px-24 py-6 max-w-[1280px] mx-auto w-full">
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-          <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-purple-600 shrink-0 overflow-hidden">
+          <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 shrink-0 overflow-hidden shadow-lg border-2 border-white dark:border-neutral-900">
             {snippet.thumbnails?.medium?.url && (
-              <img src={snippet.thumbnails.medium.url} alt={snippet.title} className="w-full h-full object-cover" onError={handleThumbnailError} />
+              <img
+                src={snippet.thumbnails.medium.url}
+                alt={snippet.title}
+                className="w-full h-full object-cover"
+                onError={handleThumbnailError}
+                referrerPolicy="no-referrer"
+              />
             )}
           </div>
           
@@ -116,13 +135,13 @@ export function Channel() {
            </div>
          ) : (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
-            {videos.map((video: any) => {
+            {videos.map((video: any, idx: number) => {
                const vidId = typeof video.id === 'string' ? video.id : video.id.videoId;
                if (!vidId) return null;
                
                return (
                  <VideoCard
-                    key={vidId}
+                    key={`channel-${vidId}-${idx}`}
                     id={vidId}
                     title={video.snippet.title}
                     channelName={video.snippet.channelTitle}

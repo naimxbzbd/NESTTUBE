@@ -293,12 +293,20 @@ export function getPersonalizedHomeFeed(
     }).sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0));
   }
 
+  // Deduplicate ranked items by video ID
+  const seenRankedIds = new Set<string>();
+  const uniqueRanked = rankedItems.filter((item) => {
+    if (!item?.id || seenRankedIds.has(item.id)) return false;
+    seenRankedIds.add(item.id);
+    return true;
+  });
+
   // Pagination support
   const pageIndex = pageToken ? parseInt(pageToken, 10) || 0 : 0;
   const start = pageIndex * pageSize;
-  const pagedItems = rankedItems.slice(start, start + pageSize);
+  const pagedItems = uniqueRanked.slice(start, start + pageSize);
 
-  const hasNext = start + pageSize < rankedItems.length;
+  const hasNext = start + pageSize < uniqueRanked.length;
   const nextPageToken = hasNext ? String(pageIndex + 1) : undefined;
 
   return {
@@ -421,5 +429,15 @@ export function getPlayerRecommendations(
   // Sort descending by calculated recommendation score
   filtered.sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0));
 
-  return filtered.slice(0, maxResults);
+  // Deduplicate before slicing to guarantee unique items
+  const seenPlayerIds = new Set<string>();
+  const uniquePlayerVideos: RecommendedVideoItem[] = [];
+  for (const item of filtered) {
+    if (item && item.id && !seenPlayerIds.has(item.id)) {
+      seenPlayerIds.add(item.id);
+      uniquePlayerVideos.push(item);
+    }
+  }
+
+  return uniquePlayerVideos.slice(0, maxResults);
 }

@@ -52,7 +52,8 @@ export const PopunderAdModal: React.FC = () => {
     closePopunderModal,
     config,
     isPremium,
-    videoWatchCount
+    videoWatchCount,
+    openDirectLink,
   } = useAdsterra();
 
   const [countdown, setCountdown] = useState<number>(3);
@@ -84,15 +85,7 @@ export const PopunderAdModal: React.FC = () => {
 
   const handleOpenAd = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    let targetUrl = config.popunder.smartLinkUrl || config.interstitial.smartLinkUrl || '';
-    if (!targetUrl || targetUrl.trim().endsWith('.js')) {
-      targetUrl = promo.fallbackUrl;
-    }
-    try {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      console.warn('Could not open popunder ad destination', err);
-    }
+    openDirectLink(config.directLink?.smartLinkUrl || promo.fallbackUrl);
   };
 
   if (isPremium || !isPopunderModalOpen) return null;

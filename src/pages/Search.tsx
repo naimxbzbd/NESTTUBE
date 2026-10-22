@@ -83,6 +83,8 @@ export function Search() {
                          alt={video.snippet.title} 
                          className="w-full h-full object-cover" 
                          onError={handleThumbnailError}
+                         referrerPolicy="no-referrer"
+                         loading="lazy"
                        />
                     </Link>
                     <div className="flex flex-col flex-1 py-1 pr-8 relative">

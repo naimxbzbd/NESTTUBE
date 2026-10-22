@@ -55,13 +55,13 @@ export function RecommendedPlaylistsSection() {
         <h2 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight">Recommended Mixes</h2>
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar py-1">
-        {playlists.map((pl) => {
+        {playlists.map((pl, idx) => {
           const firstId = pl.videoIds[0];
           const restIds = pl.videoIds.slice(1).join(',');
           const url = `/watch/${firstId}?playlistIds=${restIds}`;
           
           return (
-            <div key={pl.id} className="w-64 shrink-0 group">
+            <div key={`mix-${pl.id}-${idx}`} className="w-64 shrink-0 group">
               <div className="relative aspect-video rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 mb-2 cursor-pointer shadow-sm border border-neutral-200 dark:border-white/5">
                 <img src={pl.thumbnailUrl} alt={pl.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={handleThumbnailError} />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

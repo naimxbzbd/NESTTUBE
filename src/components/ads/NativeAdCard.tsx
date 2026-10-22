@@ -50,7 +50,7 @@ const NATIVE_ADS = [
 ];
 
 export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
-  const { config, triggerPopunder, isPremium } = useAdsterra();
+  const { config, triggerPopunder, isPremium, openDirectLink } = useAdsterra();
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -131,12 +131,7 @@ export const NativeAdCard: React.FC<NativeAdCardProps> = ({ index = 0 }) => {
   const adData = NATIVE_ADS[index % NATIVE_ADS.length];
 
   const handleClick = () => {
-    const url = config.interstitial.smartLinkUrl || 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js';
-    try {
-      window.open(url, '_blank');
-    } catch (e) {
-      console.warn('Native ad click popup error', e);
-    }
+    openDirectLink(config.directLink?.smartLinkUrl);
   };
 
   return (

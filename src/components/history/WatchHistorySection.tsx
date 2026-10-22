@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { History, Trash2, X, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { getWatchHistory, clearWatchHistory, removeFromWatchHistory, HistoryItem } from '../../lib/watchHistory';
 import { formatDuration, formatPublishedAt, formatViewCount } from '../../lib/formatters';
+import { handleThumbnailError } from '../../lib/utils';
 
 export function WatchHistorySection() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -84,9 +85,9 @@ export function WatchHistorySection() {
           ref={scrollContainerRef}
           className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1"
         >
-          {sortedHistory.map((item) => (
+          {sortedHistory.map((item, idx) => (
             <div
-              key={item.id}
+              key={`history-${item.id}-${item.watchedAt || idx}`}
               className="w-56 shrink-0 flex flex-col gap-2 group/card relative"
             >
               <div className="relative aspect-video rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5">
@@ -96,6 +97,9 @@ export function WatchHistorySection() {
                       src={item.thumbnailUrl}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-200"
+                      onError={handleThumbnailError}
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full bg-neutral-200 dark:bg-neutral-800" />

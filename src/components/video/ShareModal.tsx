@@ -15,7 +15,7 @@ export function ShareModal({ isOpen, onClose, videoTitle, videoId }: ShareModalP
   if (!isOpen) return null;
 
   const videoUrl = `${window.location.origin}/watch/${videoId}`;
-  const embedCode = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" title="${videoTitle}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  const embedCode = `<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${videoId}" title="${videoTitle}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);

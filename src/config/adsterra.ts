@@ -70,6 +70,13 @@ export interface InterstitialConfig {
   maxPerSession?: number; // Max ads per user session (0 = unlimited)
 }
 
+export interface DirectLinkConfig {
+  enabled: boolean;
+  smartLinkUrl: string;
+  mediaType: BannerMediaType;
+  triggerMode: 'interstitial_modal' | 'new_tab';
+}
+
 export interface PopunderConfig {
   enabled: boolean;
   smartLinkUrl: string;
@@ -98,6 +105,7 @@ export interface AdsterraConfig {
     watchBelowVideo: AdPlacementConfig;
   };
   interstitial: InterstitialConfig;
+  directLink: DirectLinkConfig;
   popunder: PopunderConfig;
   socialBar: SocialBarConfig;
 }
@@ -110,7 +118,7 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
   bannerMediaType: 'video_gif',
   placements: {
     headerBanner: {
-      enabled: true,
+      enabled: false,
       format: '728x90',
       key: 'db598ba68e8016b24923e193cccc2a32',
       width: 728,
@@ -147,11 +155,17 @@ export const DEFAULT_ADSTERRA_CONFIG: AdsterraConfig = {
     throttleStrict: true,
     maxPerSession: 0,
   },
+  directLink: {
+    enabled: true,
+    smartLinkUrl: 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js',
+    mediaType: 'video_gif',
+    triggerMode: 'interstitial_modal',
+  },
   popunder: {
     enabled: true,
     smartLinkUrl: 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js',
     key: 'popunder_live_key',
-    triggerOnFirstClick: true,
+    triggerOnFirstClick: false,
   },
   socialBar: {
     enabled: false,
@@ -178,6 +192,10 @@ export function getAdsterraConfig(): AdsterraConfig {
         interstitial: {
           ...DEFAULT_ADSTERRA_CONFIG.interstitial,
           ...(parsed.interstitial || {}),
+        },
+        directLink: {
+          ...DEFAULT_ADSTERRA_CONFIG.directLink,
+          ...(parsed.directLink || {}),
         },
         popunder: {
           ...DEFAULT_ADSTERRA_CONFIG.popunder,

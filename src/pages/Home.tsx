@@ -6,6 +6,7 @@ import { VideoCard } from '../components/video/VideoCard';
 import { NativeAdCard } from '../components/ads/NativeAdCard';
 import { WatchHistorySection } from '../components/history/WatchHistorySection';
 import { RecommendedPlaylistsSection } from '../components/home/RecommendedPlaylistsSection';
+import { HomeHeroBanner } from '../components/home/HomeHeroBanner';
 import { cn } from '../lib/utils';
 import { fetchCategoryVideos } from '../services/youtube';
 import { useChannelAvatars } from '../hooks/useChannelAvatars';
@@ -18,10 +19,10 @@ export const HOME_CATEGORIES = [
   'All',
   'Music',
   'Gaming',
+  'Live',
+  'Coding',
   'Podcasts',
   'AI & Tech',
-  'Coding',
-  'Live',
   'Comedy',
   'News',
   'Sports',
@@ -343,6 +344,11 @@ export function Home() {
               </div>
             ) : (
               <>
+                {/* Featured Content Hero Banner */}
+                {videos.length > 0 && (
+                  <HomeHeroBanner video={videos[0]} category={activeCategory} />
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
                   {interleavedItems.map((item: any, index: number) => {
                     if (item.isAd) {

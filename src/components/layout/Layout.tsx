@@ -6,19 +6,14 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { MiniPlayer } from '../video/MiniPlayer';
 import { ScrollToTopButton } from '../ui/ScrollToTopButton';
 import { OfflineBanner } from '../ui/OfflineBanner';
-import { AdContainer } from '../ads/AdContainer';
-import { useUserStore } from '../../store/useUserStore';
-import { useAdsterra } from '../../context/AdsterraContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const mainRef = useRef<HTMLDivElement>(null);
-  const { isPremium } = useUserStore();
-  const { config } = useAdsterra();
 
-  const showHeaderBanner = !isPremium && config.enabled && config.placements.headerBanner?.enabled;
+  const isShorts = location.pathname.startsWith('/shorts');
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white overflow-hidden font-sans relative pb-14 md:pb-0 transition-colors">
@@ -29,14 +24,10 @@ export function Layout() {
           isMobileOpen={isMobileMenuOpen} 
           onCloseMobile={() => setIsMobileMenuOpen(false)} 
         />
-        <main ref={mainRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
-          {showHeaderBanner && (
-            <div className="max-w-7xl mx-auto px-4 pt-2">
-              <div className="bg-neutral-900 rounded-2xl px-2">
-                <AdContainer placement="headerBanner" format="728x90" />
-              </div>
-            </div>
-          )}
+        <main 
+          ref={mainRef} 
+          className={`flex-1 relative ${isShorts ? 'overflow-hidden h-full flex flex-col' : 'overflow-y-auto custom-scrollbar'}`}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -44,13 +35,13 @@ export function Layout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="min-h-full"
+              className={isShorts ? "h-full w-full flex-1 flex flex-col overflow-hidden" : "min-h-full"}
             >
               <Outlet />
             </motion.div>
           </AnimatePresence>
           <MiniPlayer />
-          <ScrollToTopButton scrollContainerRef={mainRef} />
+          {!isShorts && <ScrollToTopButton scrollContainerRef={mainRef} />}
         </main>
       </div>
       <MobileNav />

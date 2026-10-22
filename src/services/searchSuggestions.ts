@@ -73,18 +73,76 @@ export const removeSearchHistoryItem = (queryToRemove: string): string[] => {
 };
 
 /**
- * Fetch YouTube autocomplete suggestions via Google's suggest API with timeout
+ * Fetch real-time YouTube autocomplete query predictions via JSONP
+ * JSONP dynamically inserts a script tag which bypasses browser CORS restrictions
  */
-export const fetchYouTubeSuggestions = async (query: string): Promise<string[]> => {
-  const trimmed = query.trim();
-  if (!trimmed) return [];
+const fetchViaJsonp = (query: string, timeout = 2500): Promise<string[]> => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return resolve([]);
+    }
 
+    const callbackName = `yt_suggest_cb_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    let timer: any = null;
+
+    const cleanup = () => {
+      if (timer) clearTimeout(timer);
+      try {
+        delete (window as any)[callbackName];
+      } catch {
+        (window as any)[callbackName] = undefined;
+      }
+      const el = document.getElementById(callbackName);
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    };
+
+    (window as any)[callbackName] = (data: any) => {
+      cleanup();
+      try {
+        if (Array.isArray(data) && Array.isArray(data[1])) {
+          const suggestions = data[1].map((item: any) =>
+            Array.isArray(item) ? String(item[0]) : String(item)
+          );
+          resolve(suggestions.slice(0, 10));
+        } else {
+          resolve([]);
+        }
+      } catch {
+        resolve([]);
+      }
+    };
+
+    timer = setTimeout(() => {
+      cleanup();
+      resolve([]);
+    }, timeout);
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(
+      query
+    )}&jsonp=${callbackName}`;
+    script.onerror = () => {
+      cleanup();
+      resolve([]);
+    };
+
+    document.head.appendChild(script);
+  });
+};
+
+/**
+ * Fetch YouTube suggestions via local dev server proxy
+ */
+const fetchViaProxy = async (query: string): Promise<string[]> => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
 
     const response = await fetch(
-      `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(trimmed)}`,
+      `/api/youtube-suggest?client=firefox&ds=yt&q=${encodeURIComponent(query)}`,
       { signal: controller.signal }
     );
 
@@ -93,13 +151,79 @@ export const fetchYouTubeSuggestions = async (query: string): Promise<string[]> 
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && Array.isArray(data[1])) {
-        return data[1].slice(0, 8);
+        return data[1].slice(0, 10);
       }
     }
-  } catch (error) {
-    // Gracefully handle CORS / network abort / rate-limits by returning empty array
-    // so client-side fallback suggestions take over seamlessly
+  } catch {
+    // Ignore and proceed to next fallback
   }
 
   return [];
+};
+
+/**
+ * Fetch suggestions from YouTube Data API v3 search predictions if API key is configured
+ */
+const fetchViaYouTubeDataApi = async (query: string): Promise<string[]> => {
+  const apiKey = (import.meta as any).env?.VITE_YOUTUBE_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=6&q=${encodeURIComponent(
+        query
+      )}&key=${apiKey}`,
+      { signal: controller.signal }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data?.items)) {
+        return data.items
+          .map((item: any) => item?.snippet?.title)
+          .filter(Boolean)
+          .slice(0, 6);
+      }
+    }
+  } catch {
+    // Ignore error
+  }
+
+  return [];
+};
+
+/**
+ * Fetch real-time YouTube query predictions as the user types
+ * Combines JSONP, local proxy, YouTube Data API, and local matching
+ */
+export const fetchYouTubeSuggestions = async (query: string): Promise<string[]> => {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  // 1. Try real-time JSONP (browser-native, zero CORS blockage)
+  const jsonpResults = await fetchViaJsonp(trimmed);
+  if (jsonpResults.length > 0) {
+    return jsonpResults;
+  }
+
+  // 2. Try proxy endpoint
+  const proxyResults = await fetchViaProxy(trimmed);
+  if (proxyResults.length > 0) {
+    return proxyResults;
+  }
+
+  // 3. Try YouTube Data API search prediction endpoint
+  const apiResults = await fetchViaYouTubeDataApi(trimmed);
+  if (apiResults.length > 0) {
+    return apiResults;
+  }
+
+  // 4. Local fallback from curated search topics
+  const lower = trimmed.toLowerCase();
+  return POPULAR_SUGGESTIONS.filter((s) => s.toLowerCase().includes(lower)).slice(0, 6);
 };

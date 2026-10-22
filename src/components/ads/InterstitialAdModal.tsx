@@ -126,11 +126,12 @@ export const InterstitialAdModal: React.FC = () => {
     closeInterstitial,
     config,
     isPremium,
-    videoWatchCount
+    videoWatchCount,
+    openDirectLink
   } = useAdsterra();
 
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState<number>(5);
+  const [countdown, setCountdown] = useState<number>(3);
   const [canSkip, setCanSkip] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'featured' | 'adsterra'>('featured');
@@ -142,7 +143,7 @@ export const InterstitialAdModal: React.FC = () => {
 
   useEffect(() => {
     if (!isInterstitialActive) {
-      setCountdown(5);
+      setCountdown(3);
       setCanSkip(false);
       return;
     }
@@ -220,18 +221,7 @@ export const InterstitialAdModal: React.FC = () => {
 
   const handleOpenAd = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    let targetUrl = config.interstitial.smartLinkUrl || config.popunder.smartLinkUrl || '';
-    
-    // If empty or ends with .js (like a raw script tag), open the fallback advertiser page
-    if (!targetUrl || targetUrl.trim().endsWith('.js')) {
-      targetUrl = campaign.fallbackUrl;
-    }
-    
-    try {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      console.warn('Could not open ad destination URL', err);
-    }
+    openDirectLink(config.directLink?.smartLinkUrl || campaign.fallbackUrl);
   };
 
   if (isPremium || !isInterstitialActive) return null;
@@ -291,7 +281,7 @@ export const InterstitialAdModal: React.FC = () => {
           <div className="w-full bg-neutral-800/50 h-1 overflow-hidden">
             <motion.div 
               initial={{ width: '0%' }}
-              animate={{ width: canSkip ? '100%' : `${((5 - countdown) / 5) * 100}%` }}
+              animate={{ width: canSkip ? '100%' : `${((3 - countdown) / 3) * 100}%` }}
               transition={{ ease: "linear", duration: 1 }}
               className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
             />

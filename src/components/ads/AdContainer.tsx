@@ -66,7 +66,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   showDismiss = true,
   label = 'Advertisement'
 }) => {
-  const { config, openSettings, triggerPopunder, isPremium } = useAdsterra();
+  const { config, openSettings, triggerPopunder, isPremium, openDirectLink } = useAdsterra();
   const { theme } = useTheme();
   const [dismissed, setDismissed] = useState(false);
   const [adError, setAdError] = useState(false);
@@ -165,6 +165,21 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       setAdError(true);
     }
 
+    // Safety fallback: if after 1000ms the iframe has 0 height or failed to load an ad, trigger fallback promo
+    const fallbackTimer = setTimeout(() => {
+      try {
+        const containerEl = containerRef.current;
+        const ifr = containerEl?.querySelector('iframe');
+        const doc = ifr?.contentWindow?.document;
+        // If iframe is empty or has not populated content, show rich promo banner
+        if (doc && doc.body.offsetHeight < 20) {
+          setAdError(true);
+        }
+      } catch (e) {
+        // Cross origin redirection indicates an ad might have loaded
+      }
+    }, 1000);
+
     const handleMessage = (e: MessageEvent) => {
       if (e.data === 'adsterra-error') {
         setAdError(true);
@@ -173,6 +188,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
     window.addEventListener('message', handleMessage);
 
     return () => {
+      clearTimeout(fallbackTimer);
       window.removeEventListener('message', handleMessage);
       if (container) {
         container.innerHTML = '';
@@ -187,6 +203,14 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   const isLiveScriptActive = !config.simulationMode && zoneKey && !zoneKey.includes('demo') && !adError;
 
   const PromoIcon = promo.icon;
+
+  const handleCardClick = () => {
+    if (config.directLink?.enabled && config.directLink.triggerMode === 'new_tab') {
+      openDirectLink();
+    } else {
+      triggerPopunder();
+    }
+  };
 
   return (
     <div className={cn("relative group my-3 transition-all duration-200", className)}>
@@ -227,7 +251,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
       ) : (
         /* Sponsored Native / Display Ad Card (Fallback & Simulation Mode with Video / GIF Support) */
         <div
-          onClick={triggerPopunder}
+          onClick={handleCardClick}
           className={cn(
             "relative overflow-hidden rounded-2xl border transition-all duration-200 bg-gradient-to-r shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.005]",
             adFormat === '300x250' ? "w-full max-w-[300px] h-[250px] p-2.5 flex flex-col justify-between" : "p-2.5 sm:p-3 min-h-[76px] sm:h-[84px] max-h-[90px] flex flex-col justify-center",
@@ -328,15 +352,17 @@ export const AdContainer: React.FC<AdContainerProps> = ({
               </div>
 
               {/* CTA Action Button */}
-              <a
-                href={config.popunder.smartLinkUrl || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn("w-full py-1.5 px-3 rounded-xl font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 mt-1", promo.buttonBg)}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirectLink();
+                }}
+                className={cn("w-full py-1.5 px-3 rounded-xl font-semibold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 mt-1 cursor-pointer", promo.buttonBg)}
               >
                 <span>{promo.cta}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              </button>
             </div>
           ) : (
             /* Horizontal Leaderboard / 728x90 Banner Ad with Video/GIF Preview (Fixed 728x90) */
@@ -401,15 +427,17 @@ export const AdContainer: React.FC<AdContainerProps> = ({
               </div>
 
               {/* Leaderboard CTA Button */}
-              <a
-                href={config.popunder.smartLinkUrl || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn("px-3.5 py-1.5 sm:py-2 rounded-xl font-semibold text-xs shrink-0 transition-all shadow-sm flex items-center gap-1.5 w-auto justify-center", promo.buttonBg)}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirectLink();
+                }}
+                className={cn("px-3.5 py-1.5 sm:py-2 rounded-xl font-semibold text-xs shrink-0 transition-all shadow-sm flex items-center gap-1.5 w-auto justify-center cursor-pointer", promo.buttonBg)}
               >
                 <span>{promo.cta}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              </button>
             </div>
           )}
         </div>

@@ -261,8 +261,12 @@ export function SearchInput({
           isMobile ? 'h-9' : 'h-10'
         } group focus-within:border-blue-500 overflow-hidden transition-colors relative z-40`}
       >
-        <div className="hidden group-focus-within:flex pl-4">
-          <Search className="w-4 h-4 text-neutral-400 dark:text-white/50" />
+        <div className="hidden group-focus-within:flex pl-4 items-center">
+          {isLoadingApi ? (
+            <div className="w-3.5 h-3.5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin shrink-0" />
+          ) : (
+            <Search className="w-4 h-4 text-neutral-400 dark:text-white/50" />
+          )}
         </div>
         <input
           ref={inputRef}

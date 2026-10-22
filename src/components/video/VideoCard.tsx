@@ -108,7 +108,14 @@ export function VideoCard({
     <div className="flex flex-col gap-3 group">
       <Link to={`/watch/${id}`} onClick={handleVideoClick} className="relative aspect-video rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5 block cursor-pointer">
         {thumbnailUrl ? (
-          <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" onError={handleThumbnailError} />
+          <img
+            src={thumbnailUrl}
+            alt={title}
+            className="w-full h-full object-cover"
+            onError={handleThumbnailError}
+            referrerPolicy="no-referrer"
+            loading="lazy"
+          />
         ) : (
           <div className={cn("w-full h-full bg-gradient-to-tr opacity-80", thumbnailColor || "from-blue-600 to-indigo-900")}></div>
         )}
@@ -123,6 +130,8 @@ export function VideoCard({
             alt={channelName} 
             className="w-full h-full object-cover"
             onError={() => setAvatarError(true)}
+            referrerPolicy="no-referrer"
+            loading="lazy"
           />
         </Link>
         <div className="flex flex-col">

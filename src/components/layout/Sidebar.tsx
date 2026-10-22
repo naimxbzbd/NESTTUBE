@@ -13,7 +13,7 @@ interface SidebarProps {
 
 export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation();
-  const { subscribedChannels, playlists } = useUserStore();
+  const { subscribedChannels, playlists, isPremium } = useUserStore();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isSponsorshipOpen, setIsSponsorshipOpen] = useState(false);
 
@@ -31,13 +31,22 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
       {isMobileOpen && (
         <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-neutral-200 dark:border-white/10 md:hidden">
           <Link to="/" onClick={handleLinkClick} className="flex items-center gap-2">
-            <div className="bg-[#ff0000] w-7 h-5 rounded flex items-center justify-center shrink-0 shadow-sm">
+            <div className={cn(
+              "w-7 h-5 rounded flex items-center justify-center shrink-0 shadow-sm",
+              isPremium ? "bg-gradient-to-tr from-[#ff0000] to-amber-500" : "bg-[#ff0000]"
+            )}>
               <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[6px] border-l-white border-b-[3px] border-b-transparent ml-0.5"></div>
             </div>
-            <div className="flex flex-col leading-tight">
+            {isPremium ? (
+              <div className="flex flex-col leading-none">
+                <span className="text-lg font-extrabold tracking-tight uppercase leading-none">NESTTUBE</span>
+                <span className="text-[10px] font-black tracking-widest text-amber-500 dark:text-amber-400 uppercase text-right leading-none mt-0.5">
+                  PRO
+                </span>
+              </div>
+            ) : (
               <span className="text-lg font-extrabold tracking-tight uppercase leading-none">NESTTUBE</span>
-              <span className="text-[10px] text-neutral-500 dark:text-white/60 font-normal leading-none mt-0.5">by Naim Xbz</span>
-            </div>
+            )}
           </Link>
           <button
             onClick={onCloseMobile}

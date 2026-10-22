@@ -73,11 +73,11 @@ export function Trending() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
-          {videos.map((v: any) => {
-            const vid = typeof v.id === 'string' ? v.id : v.id?.videoId || String(Math.random());
+          {videos.map((v: any, idx: number) => {
+            const vid = typeof v.id === 'string' ? v.id : v.id?.videoId || String(idx);
             return (
               <VideoCard
-                key={vid}
+                key={`trending-${vid}-${idx}`}
                 id={vid}
                 title={v.snippet?.title || ''}
                 channelName={v.snippet?.channelTitle || ''}

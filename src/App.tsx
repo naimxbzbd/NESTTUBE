@@ -14,6 +14,8 @@ import { PopunderAdModal } from './components/ads/PopunderAdModal';
 import { AdSettingsModal } from './components/ads/AdSettingsModal';
 import { AdBlockDetector } from './components/ads/AdBlockDetector';
 import { PremiumModal } from './components/subscription/PremiumModal';
+import { BkashPaymentModal } from './components/subscription/BkashPaymentModal';
+import { AdminPaymentModal } from './components/admin/AdminPaymentModal';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Watch } from './pages/Watch';
@@ -61,6 +63,8 @@ export default function App() {
               <AdSettingsModal />
               <AdBlockDetector />
               <PremiumModal />
+              <BkashPaymentModal />
+              <AdminPaymentModal />
             </BrowserRouter>
           </QueryClientProvider>
         </MiniPlayerProvider>

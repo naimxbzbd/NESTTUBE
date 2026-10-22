@@ -75,9 +75,12 @@ export function MiniPlayer() {
         <div className="w-full aspect-video bg-black relative">
           {!isCurrentWatchPage ? (
             <iframe
-              src={`https://www.youtube.com/embed/${activeVideo.id}?autoplay=1&rel=0`}
+              src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=1&rel=0&enablejsapi=1${
+                typeof window !== 'undefined' && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : ''
+              }`}
               title={activeVideo.title}
               className="w-full h-full border-0"
+              referrerPolicy="strict-origin-when-cross-origin"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />

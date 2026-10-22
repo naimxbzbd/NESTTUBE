@@ -42,7 +42,8 @@ export const AdSettingsModal: React.FC = () => {
     togglePremium,
     clicksSinceLastInterstitial,
     interstitialsShownInSession,
-    resetSessionAdStats
+    resetSessionAdStats,
+    openDirectLink
   } = useAdsterra();
   const [formData, setFormData] = useState<AdsterraConfig>(config);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -808,39 +809,166 @@ export const AdSettingsModal: React.FC = () => {
               )}
             </div>
 
-            {/* Popunder Floating Card Settings */}
-            <div className="p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-xs text-neutral-900 dark:text-white">
-                  Popunder Corner Modal & Direct Link URL
-                </span>
+            {/* Direct Link & Smartlink Monetization (Alternative to Legacy Popunders) */}
+            <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+                    <ExternalLink className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                      <span>Smartlink / Direct Link Monetization</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        Popunder Replacement
+                      </span>
+                    </span>
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      Replaces intrusive popunders with high-converting dynamic video & GIF teaser modals linking directly to your Smartlink.
+                    </p>
+                  </div>
+                </div>
                 <input
                   type="checkbox"
-                  checked={formData.popunder.enabled}
+                  checked={formData.directLink?.enabled ?? true}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      popunder: { ...formData.popunder, enabled: e.target.checked },
+                      directLink: {
+                        ...(formData.directLink || {
+                          enabled: true,
+                          smartLinkUrl: 'https://pl30753698.effectivecpmnetwork.com/ae/f9/21/aef921faf99a1886dd69aeebe25360d1.js',
+                          mediaType: 'video_gif',
+                          triggerMode: 'interstitial_modal',
+                        }),
+                        enabled: e.target.checked,
+                      },
+                      popunder: {
+                        ...formData.popunder,
+                        enabled: e.target.checked,
+                      },
                     })
                   }
-                  className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
+                  className="w-5 h-5 accent-amber-500 rounded cursor-pointer mt-0.5"
                 />
               </div>
-              <input
-                type="text"
-                placeholder="Popunder Smartlink Direct URL (e.g. https://www.profitablecpmrate.com/...)"
-                value={formData.popunder.smartLinkUrl || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    popunder: { ...formData.popunder, smartLinkUrl: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg text-xs outline-none focus:border-blue-500"
-              />
-              <p className="text-[11px] text-neutral-500">
-                Direct Links open automatically when users click &ldquo;Claim Offer&rdquo; on the sponsored ad card.
-              </p>
+
+              {(formData.directLink?.enabled ?? true) && (
+                <div className="space-y-3 pt-1 border-t border-amber-500/15">
+                  {/* SmartLink Direct URL Input */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300">
+                        Active Smartlink / Direct Link URL:
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = formData.directLink?.smartLinkUrl || formData.popunder?.smartLinkUrl;
+                          openDirectLink(url);
+                        }}
+                        className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Test Direct Link</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="https://pl30753698.effectivecpmnetwork.com/..."
+                      value={formData.directLink?.smartLinkUrl || formData.popunder?.smartLinkUrl || ''}
+                      onChange={(e) => {
+                        const newUrl = e.target.value;
+                        setFormData({
+                          ...formData,
+                          directLink: {
+                            ...(formData.directLink || {
+                              enabled: true,
+                              smartLinkUrl: '',
+                              mediaType: 'video_gif',
+                              triggerMode: 'interstitial_modal',
+                            }),
+                            smartLinkUrl: newUrl,
+                          },
+                          popunder: {
+                            ...formData.popunder,
+                            smartLinkUrl: newUrl,
+                          },
+                        });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg text-xs outline-none focus:border-amber-500 font-mono text-[11px]"
+                    />
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                      Adsterra Smartlink automatically directs visitors to the highest-bidding offer (GEO, device, & OS targeted).
+                    </p>
+                  </div>
+
+                  {/* Trigger Mode Option */}
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <span className="text-xs font-semibold text-neutral-900 dark:text-white block">
+                        Ad Display Format
+                      </span>
+                      <span className="text-[10px] text-neutral-500">
+                        Choose how users experience the Smartlink ad
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-neutral-200/80 dark:bg-neutral-800 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            directLink: {
+                              ...(formData.directLink || {
+                                enabled: true,
+                                smartLinkUrl: '',
+                                mediaType: 'video_gif',
+                                triggerMode: 'interstitial_modal',
+                              }),
+                              triggerMode: 'interstitial_modal',
+                            },
+                          })
+                        }
+                        className={cn(
+                          "px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer",
+                          (formData.directLink?.triggerMode || 'interstitial_modal') === 'interstitial_modal'
+                            ? "bg-amber-500 text-white shadow-sm"
+                            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                        )}
+                      >
+                        Video/GIF Teaser Modal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            directLink: {
+                              ...(formData.directLink || {
+                                enabled: true,
+                                smartLinkUrl: '',
+                                mediaType: 'video_gif',
+                                triggerMode: 'interstitial_modal',
+                              }),
+                              triggerMode: 'new_tab',
+                            },
+                          })
+                        }
+                        className={cn(
+                          "px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all cursor-pointer",
+                          formData.directLink?.triggerMode === 'new_tab'
+                            ? "bg-neutral-700 text-white shadow-sm"
+                            : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                        )}
+                      >
+                        Direct New Tab
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
