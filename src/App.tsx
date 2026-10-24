@@ -16,9 +16,13 @@ import { AdBlockDetector } from './components/ads/AdBlockDetector';
 import { PremiumModal } from './components/subscription/PremiumModal';
 import { BkashPaymentModal } from './components/subscription/BkashPaymentModal';
 import { AdminPaymentModal } from './components/admin/AdminPaymentModal';
+import { CoinModal } from './components/coins/CoinModal';
+import { GiftModal } from './components/video/GiftModal';
+import { CelebrationOverlay } from './components/video/CelebrationOverlay';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Watch } from './pages/Watch';
+import { LiveTv } from './pages/LiveTv';
 import { Search } from './pages/Search';
 import { Channel } from './pages/Channel';
 import { Shorts } from './pages/Shorts';
@@ -47,6 +51,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
+                  <Route path="live-tv" element={<LiveTv />} />
                   <Route path="watch/:id" element={<Watch />} />
                   <Route path="search" element={<Search />} />
                   <Route path="channel/:id" element={<Channel />} />
@@ -58,6 +63,12 @@ export default function App() {
                   <Route path="library" element={<Library />} />
                 </Route>
               </Routes>
+              {/* PipraCoins Wallet & Virtual Gifts Modals */}
+              <CoinModal />
+              <GiftModal />
+              <CelebrationOverlay />
+
+              {/* Ads & Subscription Modals */}
               <InterstitialAdModal />
               <PopunderAdModal />
               <AdSettingsModal />
@@ -72,4 +83,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-

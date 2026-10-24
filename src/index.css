@@ -2,13 +2,308 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --color-page: #0b0f15;
+  --color-surface: #121824;
+  --color-surface-hover: #1b2434;
+  --color-card: #161d27;
+  --brand-primary: #ff2d6f;
+  --brand-secondary: #c026d3;
+  --brand-orange: #ff9a1f;
+  --font-sans: 'Hind Siliguri', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 @layer base {
   html, body {
-    @apply bg-white text-neutral-900 transition-colors duration-200;
+    background-color: var(--color-page);
+    color: #f8fafc;
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
   }
-  html.dark, html.dark body {
-    @apply bg-[#0f0f0f] text-white;
+}
+
+/* PipraTube Signature Gradients and RGB Animations */
+.bg-brand-gradient {
+  background-image: linear-gradient(90deg, #ff2d6f, #c026d3);
+}
+
+.bg-upload-gradient {
+  background-image: linear-gradient(135deg, #ff9a1f, #ff2d6f, #c026d3);
+}
+
+.text-brand-gradient {
+  background: linear-gradient(90deg, #ff2d6f, #c026d3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pb-bottom-nav {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .pb-bottom-nav {
+    padding-bottom: 2rem;
   }
+}
+
+/* RGB Conic Glow on Active Elements */
+@property --rgb-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes rgb-spin {
+  to {
+    --rgb-angle: 360deg;
+  }
+}
+
+.rgb-active {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(90deg, rgba(255, 45, 111, 0.15), rgba(124, 58, 237, 0.12));
+}
+
+.rgb-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--rgb-angle), #ff2d6f, #ff9a1f, #facc15, #22c55e, #06b6d4, #6366f1, #c026d3, #ff2d6f);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: 3.5s linear infinite rgb-spin;
+  z-index: -1;
+}
+
+.rgb-text {
+  color: transparent;
+  background: linear-gradient(90deg, #ff2d6f, #ff9a1f, #facc15, #22c55e, #06b6d4, #6366f1, #c026d3, #ff2d6f) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: 4s linear infinite rgb-slide;
+}
+
+@keyframes rgb-slide {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.icon-tile {
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.35), 0 6px 16px -6px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* NestTube Ultra-Realistic Bird Flight & Natural Idle Keyframes */
+@keyframes real-bird-idle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  14% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  18% {
+    /* Quick realistic head/body twitch to the left */
+    transform: translateY(-1.5px) rotate(-9deg) scale(1.02);
+  }
+  30% {
+    transform: translateY(-1.5px) rotate(-9deg) scale(1.02);
+  }
+  34% {
+    /* Quick look to the right */
+    transform: translateY(-1px) rotate(7deg) scale(1);
+  }
+  48% {
+    transform: translateY(-1px) rotate(7deg) scale(1);
+  }
+  54% {
+    /* Feather ruffle & puff */
+    transform: translateY(-2px) rotate(0deg) scale(1.08, 0.94);
+  }
+  60% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  74% {
+    /* Subtle hop in nest */
+    transform: translateY(-3.5px) rotate(-3deg) scale(1.04);
+  }
+  80% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes real-bird-flight {
+  /* 0%: In nest */
+  0% {
+    transform: translate(0px, 0px) scale(1, 1) rotate(0deg);
+  }
+  /* 3%: Deep crouch before leap */
+  3% {
+    transform: translate(-2px, 3px) scale(0.92, 0.82) rotate(-6deg);
+  }
+  /* 7%: Explosive leap out of nest! */
+  7% {
+    transform: translate(12px, -18px) scale(1.18, 1.18) rotate(-26deg);
+  }
+  /* 16%: Flapping climb over 'N' */
+  16% {
+    transform: translate(40px, -35px) scale(1.14, 1.14) rotate(-16deg);
+  }
+  /* 25%: Undulating glide dip over 'E' */
+  25% {
+    transform: translate(72px, -22px) scale(1.08, 1.08) rotate(5deg);
+  }
+  /* 35%: Second flapping thrust climbing over 'S' and 'T' */
+  35% {
+    transform: translate(112px, -36px) scale(1.12, 1.12) rotate(-14deg);
+  }
+  /* 44%: High arc over 'U' and feather */
+  44% {
+    transform: translate(154px, -28px) scale(1.06, 1.06) rotate(6deg);
+  }
+  /* 51%: Banking turn at edge of logo */
+  51% {
+    transform: translate(176px, -10px) scale(1.02, 1.02) rotate(32deg);
+  }
+  /* 55%: Smoothly rolls and turns to face forward towards the left! */
+  55% {
+    transform: translate(168px, 4px) scale(-1.08, 1.08) rotate(-22deg);
+  }
+  /* 65%: Swoop across the front of 'TUBE' (facing left) */
+  65% {
+    transform: translate(128px, 16px) scale(-1.05, 1.05) rotate(14deg);
+  }
+  /* 75%: Bounding glide across bottom of 'NEST' */
+  75% {
+    transform: translate(72px, 14px) scale(-1.02, 1.02) rotate(-2deg);
+  }
+  /* 85%: Climbing towards nest */
+  85% {
+    transform: translate(26px, 4px) scale(-1.06, 1.06) rotate(-16deg);
+  }
+  /* 92%: Flare brake! Upright pitch to decelerate in air */
+  92% {
+    transform: translate(8px, -10px) scale(-1.12, 1.12) rotate(34deg);
+  }
+  /* 96%: Gentle hover touchdown */
+  96% {
+    transform: translate(2px, -2px) scale(-1.02, 1.02) rotate(6deg);
+  }
+  /* 100%: Turns back and rests comfortably */
+  100% {
+    transform: translate(0px, 0px) scale(1, 1) rotate(0deg);
+  }
+}
+
+/* Realistic dual wing flapping */
+@keyframes real-wing-front {
+  0%, 100% {
+    transform: rotate(0deg) scaleY(1);
+  }
+  45% {
+    transform: rotate(-55deg) scaleY(0.7) skewX(10deg);
+  }
+  75% {
+    transform: rotate(30deg) scaleY(1.15) skewX(-5deg);
+  }
+}
+
+@keyframes real-wing-back {
+  0%, 100% {
+    transform: rotate(0deg) scaleY(1);
+  }
+  45% {
+    transform: rotate(-60deg) scaleY(0.65) skewX(8deg);
+  }
+  75% {
+    transform: rotate(35deg) scaleY(1.1) skewX(-4deg);
+  }
+}
+
+@keyframes real-tail-rudder {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+}
+
+.animate-real-bird-idle {
+  animation: real-bird-idle 5.5s ease-in-out infinite;
+}
+
+.animate-real-bird-flight {
+  animation: real-bird-flight 4.6s cubic-bezier(0.28, 0, 0.22, 1) forwards;
+}
+
+.animate-real-wing-front {
+  transform-origin: 25% 45%;
+  animation: real-wing-front 0.12s ease-in-out infinite;
+}
+
+.animate-real-wing-back {
+  transform-origin: 25% 45%;
+  animation: real-wing-back 0.12s ease-in-out infinite;
+}
+
+.animate-real-tail {
+  transform-origin: 80% 50%;
+  animation: real-tail-rudder 0.3s ease-in-out infinite;
+}
+
+/* Trailing feather drift particle */
+@keyframes feather-drift {
+  0% {
+    opacity: 0.95;
+    transform: translate(0px, 0px) rotate(var(--init-rot, 0deg)) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(var(--drift-x, 4px), 8px) rotate(calc(var(--init-rot, 0deg) + 24deg)) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--drift-x, 4px) * 1.8), 18px) rotate(calc(var(--init-rot, 0deg) + 52deg)) scale(0.55);
+  }
+}
+
+/* Trailing sparkle star shimmer particle */
+@keyframes sparkle-trail {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.3) rotate(45deg);
+    filter: drop-shadow(0 0 5px rgba(254, 240, 138, 0.95));
+  }
+  75% {
+    opacity: 0.7;
+    transform: scale(0.8) rotate(90deg) translateY(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(140deg) translateY(6px);
+  }
+}
+
+.animate-feather-drift {
+  animation: feather-drift 0.95s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-sparkle-trail {
+  animation: sparkle-trail 0.8s ease-out forwards;
 }
 
 @layer utilities {
@@ -21,18 +316,16 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(150, 150, 150, 0.3);
-    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
   }
   .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(150, 150, 150, 0.5);
+    background-color: rgba(255, 255, 255, 0.3);
   }
 }
-
-

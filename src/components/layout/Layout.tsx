@@ -16,7 +16,7 @@ export function Layout() {
   const isShorts = location.pathname.startsWith('/shorts');
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white overflow-hidden font-sans relative pb-14 md:pb-0 transition-colors">
+    <div className="flex flex-col h-screen bg-[#0b0f15] text-white overflow-hidden font-sans relative pb-16 md:pb-0 transition-colors">
       <OfflineBanner />
       <Header onToggleMenu={() => setIsMobileMenuOpen((prev) => !prev)} />
       <div className="flex flex-1 overflow-hidden relative">

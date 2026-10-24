@@ -213,38 +213,7 @@ export const AdContainer: React.FC<AdContainerProps> = ({
   };
 
   return (
-    <div className={cn("relative group my-3 transition-all duration-200", className)}>
-      {/* Label & Admin Controls Bar */}
-      <div className={cn("flex items-center justify-between px-2 py-1 text-[11px] font-medium tracking-wide border-b border-dashed border-neutral-200 dark:border-white/10 mb-1.5", placement === 'headerBanner' ? "text-white" : "text-neutral-500 dark:text-neutral-400")}>
-        <div className="flex items-center gap-1.5">
-          <span className={cn("text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border", placement === 'headerBanner' ? "bg-white/20 text-white border-white/30" : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20")}>
-            {label}
-          </span>
-          <span className={cn("text-xs", placement === 'headerBanner' ? "text-white/80" : "text-neutral-400 dark:text-neutral-500")}>
-            {config.simulationMode ? '(Adsterra Demo)' : `(Zone: ${zoneKey.slice(0, 8)}...)`}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={openSettings}
-            className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
-            title="Configure Adsterra Zone Keys"
-          >
-            <Settings className="w-3 h-3" />
-            <span className="hidden sm:inline text-[10px]">Ad Settings</span>
-          </button>
-          {showDismiss && (
-            <button
-              onClick={() => setDismissed(true)}
-              className="p-0.5 hover:bg-neutral-200 dark:hover:bg-white/10 rounded transition-colors cursor-pointer"
-              title="Hide Ad"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-
+    <div className={cn("relative group my-2 transition-all duration-200", className)}>
       {/* Live Script Iframe Render Box */}
       {isLiveScriptActive ? (
         <div ref={containerRef} className="min-h-[90px] flex justify-center items-center bg-neutral-50 dark:bg-neutral-900/50 rounded-xl p-2 border border-neutral-200 dark:border-white/10 hover:scale-[1.01] transition-transform duration-200"></div>

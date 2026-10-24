@@ -1,67 +1,83 @@
-# Implementation Plan: Direct Link & Smartlink System with Dynamic Video/GIF Teasers
+# Animated NestTube Bird Flight & Logo Experience
 
-Replace traditional popunder ads with an **Adsterra Direct Link / Smartlink Monetization System**. Instead of intrusive popunder scripts that are often blocked by modern browsers, the application will display a high-converting, responsive interstitial modal and dynamic teaser banners (video/GIF) with a direct call-to-action that opens the user's configured Direct Link / Smartlink in a new tab.
+NestTube প্ল্যাটফর্মের জন্য ব্যবহারকারীর আপলোডকৃত অফিসিয়াল লোগো (`image_50190da0.png`) সমন্বয়ে একটি জীবন্ত, স্মুথ এবং আকর্ষণীয় অ্যানিমেটেড বার্ড-ফ্লাইট লোগো সিস্টেম তৈরির রূপরেখা।
 
----
+***
 
-## User Specifications & Selections
-1. **Trigger Behavior**: Show interactive interstitial modal with dynamic video/GIF preview and Direct Link CTA.
-2. **Creative Content**: Display dynamic video or animated GIF teaser banners that link to the Direct Link.
-3. **Default URL**: Use the currently active Smartlink URL in the application (`https://pl30753698.effectivecpmnetwork.com/...`) with full support for custom Direct Link URLs in Ad Settings.
+### User Review & Critical Decisions
 
----
+> [!IMPORTANT]
+> ব্যবহারকারীর সরাসরি উত্তরের ভিত্তিতে নিম্নোক্ত সিদ্ধান্তসমূহ নিশ্চিত করা হয়েছে:
 
-## Proposed Changes
+- **Confirmed Decision 1 (Layered Visual Architecture)**: ব্যবহারকারীর আপলোডকৃত হাই-কোয়ালিটি NestTube লোগো (`/public/assets/aistudio/image_50190da0.png`) বেস হিসেবে থাকবে। বাসা (Nest), ৩ডি লাল ও সাদা লেটারিং এবং ডানা ঝাপটানো নীল পাখিটির লেয়ার্ড আর্কিটেকচার তৈরি করা হবে।
+- **Confirmed Decision 2 (Flight Timing & Routine)**: পাখিটি প্রতি ৮ থেকে ১২ সেকেন্ড পরপর স্বয়ংক্রিয়ভাবে বাসা থেকে উড়াল দেবে এবং লোগোর ওপর দিয়ে চমৎকার আর্ক তৈরি করে আবার বাসায় ফিরে এসে শান্তভাবে বসবে (Resting State)। এছাড়াও ব্যবহারকারী লোগোর ওপর মাউস হোভার (Hover) বা ট্যাপ করলেও পাখিটি সাথে সাথে উড়াল দেবে।
+- **Confirmed Decision 3 (Playful Flight Path & Motion)**: পাখিটি শুধুমাত্র বাসার চারপাশে নয়, বরং হেডার বারের ওপর দিয়ে ও NestTube অক্ষরের চারপাশে প্লেফুল সুইপিং আর্ক (Swooping Arc) তৈরি করে উড়ে বেড়াবে, সাথে থাকবে উইং-ফ্ল্যাপ অ্যানিমেশন ও হালকা পালক/স্পার্কল ট্রেইল।
 
-### 1. Direct Link & Smartlink Configuration (`src/config/adsterra.ts`)
-- Update `DEFAULT_ADSTERRA_CONFIG` to formally transition from legacy popunder to `directLink` / `smartLink`:
-  - Provide designated `directLinkUrl` setting (defaulting to the active Smartlink).
-  - Add creative media preference: `'video'` | `'gif'` | `'image'` to control how teaser campaigns are showcased.
-  - Maintain throttle presets (Aggressive, Balanced, Relaxed, Minimal) and cooldown protection.
+***
 
-### 2. Context & Trigger Logic (`src/context/AdsterraContext.tsx`)
-- Replace popunder trigger logic with Direct Link Interstitial triggers:
-  - Trigger on video navigation or action according to configured interval (e.g. every 2 videos).
-  - Ensure zero popunder script blockage or browser warning banners.
-  - Expose helper `openDirectLink(targetUrl?: string)` that opens the active Direct Link in a new tab safely with `rel="noopener noreferrer"`.
+### 1. Overview & Core Concept
 
-### 3. Rich Video & GIF Teaser Interstitial (`src/components/ads/InterstitialAdModal.tsx`)
-- Refine the Interstitial modal:
-  - Feature engaging video trailers and high-frame-rate animated GIFs (Cloud VPS, 4K ShieldVPN, GameVerse AAA Cloud Gaming, AI tools) with audio toggle (Mute/Unmute).
-  - Prominent CTA button linking directly to the Adsterra Smartlink/Direct Link.
-  - Countdown timer (3 seconds) with "Skip Ad" button for user-friendly navigation.
-  - Display verified trust badges and rating indicators to maximize click-through rate.
+- **What It Does**: সাধারণ স্ট্যাটিক লোগোর পরিবর্তে একটি ডাইনামিক লাইভ লোগো তৈরি করা হবে। পাখির বাসার ভেতর নীল রঙের কিউট পাখিটি বসে থাকবে, কিছুক্ষণ পর ডানা ঝাপটিয়ে উড়ে গিয়ে "NestTube" লেখার ওপর দিয়ে বৃত্তাকার ও ঢেউ খেলানো আর্কে ঘুরবে, তারপর স্মুথলি নেমে এসে বাসায় অবতরণ করবে।
+- **Target Audience / Persona**: প্ল্যাটফর্ম ভিজিটর ও দর্শকরা লোগোটির এই জীবন্ত মিথস্ক্রিয়া দেখে আনন্দিত হবে, যা প্ল্যাটফর্মের ব্র্যান্ড ভ্যালু ও আকর্ষণ বহুগুণ বাড়িয়ে তুলবে।
+- **Key Value**: জিরো ল্যাগ, লাইটওয়েট পারফরম্যান্স (SVG/CSS ভেক্টর ফ্রেম ও রিয়্যাক্ট স্প্রিং/ট্রানজিশন), ক্রিস্প ৪K ভিজ্যুয়াল এবং ডেস্কটপ ও মোবাইল উভয় হেডারে নিখুঁত ফিট।
 
-### 4. Retire Standalone Popunder Modal & Replace with Direct Link Hook (`src/components/ads/PopunderAdModal.tsx` & `src/App.tsx`)
-- Remove the redundant corner popunder modal or repurpose it as a sleek, non-intrusive floating Direct Link mini-teaser when enabled.
-- Ensure only one ad format is active at any time to maintain a clean YouTube-like viewing experience.
+***
 
-### 5. Ad Settings Modal (`src/components/ads/AdSettingsModal.tsx`)
-- Update the Ad Settings panel:
-  - Rebrand the "Popunder" tab/card to **"Direct Link / Smartlink Monetization"**.
-  - Add input field for the user's custom Adsterra Direct Link URL with a "Test Direct Link" button.
-  - Add selector for creative teaser media format (HD Video, Animated GIF, or High-Res Image).
+### 2. User Experience & Visual Design
 
-### 6. Banner Cards with Direct Link (`src/components/ads/NativeAdCard.tsx` & `src/components/ads/AdContainer.tsx`)
-- Ensure native ad cards and fallback banners also route directly to the active Direct Link URL when clicked, complete with the video/GIF preview badge.
+#### Five-Stage Flight Lifecycle (পাখির ৫-ধাপের জীবনচক্র)
+1. **পর্যায় ১: বাসায় বিশ্রাম (Resting in Nest)**:
+   - পাখিটি লাল বাসার ভেতরে ডিমগুলোর পাশে আরামে বসে থাকবে। মাঝে মাঝে হালকা শ্বাস নেওয়ার মতো সুক্ষ্ম বব (Bobbing) এবং অক্ষিগোলক পিটপিট করার প্রাণবন্ত ভাব থাকবে।
+2. **পর্যায় ২: উড়াল প্রস্তুতি ও ডানা মেলা (Takeoff & Flutter)**:
+   - প্রতি ৮-১২ সেকেন্ড পর (বা হোভার করলে) পাখিটি কিচিরমিচির ভঙ্গিমায় একটু লাফিয়ে উঠবে এবং দ্রুত ডানা ঝাপটানো শুরু করবে।
+3. **পর্যায় ৩: সুইপিং আর্ক ফ্লাইট (Swooping Flight Path)**:
+   - পাখিটি বাসা থেকে বের হয়ে উপরের দিকে উঠবে, ডান দিকে "NestTube" লেখার উপর দিয়ে ঢেউ খেলানো গতিতে উড়ে যাবে।
+   - ফ্লাইং পাথের সাথে সাথে পাখির বডি অ্যাঙ্গেল (Banking Angle: -15° থেকে +20°) প্রাকৃতিক নিয়মে পরিবর্তিত হবে।
+4. **পর্যায় ৪: গ্লাইডিং ও ব্যাক-লুপ (Gliding & Return Loop)**:
+   - পুরো লোগোর ওপর দিয়ে একটি সম্পূর্ণ চক্রাকার লুপ সম্পন্ন করে পাখিটি ধীরে ধীরে নিচে নেমে আসবে।
+5. **পর্যায় ৫: ল্যান্ডিং ও আরাম (Soft Touchdown)**:
+   - ডানা গুটিয়ে বাসাটির ঠিক মাঝখানে নরমভাবে অবতরণ করবে এবং পরবর্তী উড়ালের জন্য বিশ্রাম নেবে।
 
----
+#### Visual Identity & Styling
+- **লোগো ইমেজ ও আর্টওয়ার্ক**: ব্যবহারকারীর দেওয়া লাল বাসা, রুবি-রেড প্লে বাটন, লাল "NEST" এবং হোয়াইট "TUBE" সম্বলিত ক্রিস্প আর্টওয়ার্ক।
+- **পাখির রঙ**: জীবন্ত আকাশী-নীল পালক, সোনালী ঠোঁট এবং কিউট এক্সপ্রেশন।
+- **অ্যানিমেশন স্মুথনেস**: ৬০fps মসৃণ কি-ফ্রেম ও হার্ডওয়্যার অ্যাকসেলারেটেড ট্রানজিশন (`transform: translate3d(), rotate()`)।
 
-## Verification Plan
+***
 
-### Automated Tests & Checks
-- Run `npm run lint` (`lint_applet`) to ensure no TypeScript or syntax issues.
-- Run `compile_applet` to confirm build succeeds without errors.
+### 3. Key Product Decisions & Trade-Offs
 
-### Manual Verification Steps
-1. **Direct Link Interstitial Flow**:
-   - Click to play a video on the homepage or watch page.
-   - Verify the interstitial modal appears with a video or GIF teaser campaign.
-   - Click the CTA button (e.g. "Claim Deal" / "Get Offer") and verify it opens the active Smartlink URL in a new browser tab.
-   - Verify the countdown timer ticks down and the "Skip Ad" button smoothly closes the modal and continues video playback.
-2. **Ad Settings Customization**:
-   - Open Ad Settings via the megaphone icon in the Header.
-   - Navigate to the Direct Link / Smartlink section.
-   - Modify the Direct Link URL or toggle between Video and GIF teaser modes; verify settings persist to localStorage.
-3. **Banner Click-Through**:
-   - Click a native ad banner on the homepage and verify it routes to the Direct Link.
+- **Decision 1: React Component Driven vs Heavy GIF/Video**:
+  - *Chosen Approach*: একটি ডেডিকেটেড রিঅ্যাক্ট কম্পোনেন্ট (`AnimatedNestLogo.tsx`) তৈরি করা হবে যেখানে মূল হাই-রেজোলিউশন লোগোর সাথে ভেক্টর ও পিএনজি লেয়ারড ফ্লাইং বার্ড সমন্বিত থাকবে।
+  - *Why*: হেভি জিআইএফ ফাইলে ব্যাকগ্রাউন্ড ব্লেন্ডিং নষ্ট হয় ও সাইজ বড় হয়। রিঅ্যাক্ট কম্পোনেন্টে ক্রিস্প রেজোলিউশন বজায় থাকে এবং হোভার/ক্লিক ইন্টারেকশন নিখুঁতভাবে কাজ করে।
+- **Decision 2: Non-Intrusive Layout Dimensions**:
+  - *Chosen Approach*: লোগো ও পাখির ফ্লাইং জোনের জন্য একটি ওভারফ্লো-ভিজিবল কন্টেইনার রাখা হবে, যাতে হেডার বারের সার্চ বার বা অন্যান্য বাটনে কোনো লেআউট শিফট (CLS) না ঘটে।
+  - *Why*: হেডারের ইউজার এক্সপেরিয়েন্স ও সার্চিং কার্যকারিতা অক্ষুণ্ণ থাকবে।
+
+***
+
+### 4. Technical Architecture & Component Mapping
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        TOP NAVIGATION HEADER                           │
+├────────────────────────────────────────────────────────────────────────┤
+│  [Menu]  [--- AnimatedNestLogo Component ---]    [Search Bar]  [Coins] │
+│          │                                  │                          │
+│          │   ╭───── Swooping Flight Arc ──╮ │                          │
+│          │  ╱                              ╲│                          │
+│          │ 🐦 (Flying Bird with Wings)      │                          │
+│          │  ╲                              ╱│                          │
+│          │   [Nest (Base)] + [NESTTUBE] ◄──╯│                          │
+│          └──────────────────────────────────┘                          │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### New Files & Updates
+1. `src/components/layout/AnimatedNestLogo.tsx`:
+   - ইন্টারেক্টিভ লোগো কম্পোনেন্ট। এতে ব্যবহারকারীর আপলোডকৃত লোগো থাকবে, সাথে স্বয়ংক্রিয় টাইমার (প্রতি ৮-১২ সেকেন্ডে রান্ডম ইন্টারভাল) এবং মাউস হোভার ট্র্রিগার।
+   - ফ্লাইং বার্ডের সুইপিং আর্ক ও ফ্ল্যাটারিং উইং ফ্রেমের নিখুঁত সিএসএস/মোশন কনফিগারেশন।
+2. `src/components/layout/Header.tsx`:
+   - স্ট্যাটিক ইমেজের পরিবর্তে `AnimatedNestLogo` বসানো।
+3. `src/components/layout/Sidebar.tsx`:
+   - মোবাইল ড্রয়ার হেডারে কম্প্যাক্ট আকারে অ্যানিমেটেড লোগো সংযুক্ত করা।

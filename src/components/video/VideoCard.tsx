@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { CheckCircle2, MoreVertical, ListPlus, Clock, Sparkles } from 'lucide-react';
+import { CheckCircle2, MoreVertical, ListPlus, Clock, Sparkles, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn, handleThumbnailError } from '../../lib/utils';
 import { formatDuration, formatPublishedAt, formatViewCount } from '../../lib/formatters';
 import { getFallbackChannelAvatar } from '../../lib/avatar';
 import { SaveToPlaylistModal } from './SaveToPlaylistModal';
 import { useUserStore } from '../../store/useUserStore';
+import { useCoinStore } from '../../store/useCoinStore';
 import { useAdsterra } from '../../context/AdsterraContext';
 
 export interface VideoCardProps {
@@ -167,6 +168,22 @@ export function VideoCard({
           
           {isMenuOpen && (
             <div className="absolute right-0 top-8 w-56 bg-white dark:bg-[#282828] rounded-xl shadow-lg border border-neutral-200 dark:border-white/10 overflow-hidden z-20 py-2 animate-in fade-in zoom-in-95 duration-100">
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsMenuOpen(false);
+                  useCoinStore.getState().openGiftModal({
+                    id,
+                    title,
+                    channel: channelName,
+                  });
+                }}
+                className="w-full px-4 py-2 text-sm text-left flex items-center gap-3 hover:bg-white/10 text-amber-300 font-semibold transition-colors cursor-pointer"
+              >
+                <Gift className="w-5 h-5 text-amber-400" strokeWidth={1.5} />
+                উপহার পাঠান (Send Gift)
+              </button>
               <button 
                 onClick={handleWatchLater}
                 className="w-full px-4 py-2 text-sm text-left flex items-center gap-3 hover:bg-neutral-100 dark:hover:bg-white/10 text-[#0f0f0f] dark:text-[#f1f1f1] transition-colors cursor-pointer"

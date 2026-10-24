@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle, Gift } from 'lucide-react';
 import { cn, handleThumbnailError } from '../lib/utils';
 import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails, getPlayerRecommendations } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
 import { addToWatchHistory } from '../lib/watchHistory';
 import { useUserStore, VideoItem } from '../store/useUserStore';
+import { useCoinStore } from '../store/useCoinStore';
 import { SaveToPlaylistModal } from '../components/video/SaveToPlaylistModal';
 import { ShareModal } from '../components/video/ShareModal';
 import { useMiniPlayer } from '../context/MiniPlayerContext';
@@ -332,6 +333,20 @@ export function Watch() {
                 <ThumbsDown className={`w-5 h-5 ${isDisliked ? 'fill-current' : ''}`} strokeWidth={1.5} />
               </button>
             </div>
+
+            {/* PipraTube Gift Coins Action */}
+            <button
+              onClick={() => useCoinStore.getState().openGiftModal({
+                id: id || '',
+                title: video.snippet?.title || '',
+                channel: video.snippet?.channelTitle || '',
+              })}
+              className="flex items-center gap-1.5 px-4 h-9 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 rounded-full transition-all cursor-pointer font-bold text-xs"
+              title="ক্রিয়েটরকে উপহার পাঠান"
+            >
+              <Gift className="w-4 h-4 text-amber-400" />
+              <span>উপহার পাঠান</span>
+            </button>
 
             {/* Share */}
             <button

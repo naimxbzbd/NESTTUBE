@@ -1,6 +1,6 @@
 {
-  "name": "NESTTUBE",
-  "description": "YouTube client app - NESTTUBE",
+  "name": "NestTube",
+  "description": "NestTube - 3D Metallic Entertainment, 24/7 Bangla Live TV, Natok, Movies & Shorts",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

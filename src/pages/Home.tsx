@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, RotateCw, Sparkles, Filter, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCw, Sparkles, Filter, X, Tv } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { VideoCard } from '../components/video/VideoCard';
 import { NativeAdCard } from '../components/ads/NativeAdCard';
 import { WatchHistorySection } from '../components/history/WatchHistorySection';
 import { RecommendedPlaylistsSection } from '../components/home/RecommendedPlaylistsSection';
 import { HomeHeroBanner } from '../components/home/HomeHeroBanner';
+import { HomeLiveTvSection } from '../components/home/HomeLiveTvSection';
+import { HomeBanglaDramasSection } from '../components/home/HomeBanglaDramasSection';
 import { cn } from '../lib/utils';
 import { fetchCategoryVideos } from '../services/youtube';
 import { useChannelAvatars } from '../hooks/useChannelAvatars';
@@ -15,27 +18,24 @@ import { useUserStore } from '../store/useUserStore';
 import { useAdsterra } from '../context/AdsterraContext';
 import { Tooltip } from '../components/ui/Tooltip';
 
-export const HOME_CATEGORIES = [
-  'All',
-  'Music',
-  'Gaming',
-  'Live',
-  'Coding',
-  'Podcasts',
-  'AI & Tech',
-  'Comedy',
-  'News',
-  'Sports',
-  'Science & Nature',
-  'Cooking',
-  'Travel',
-  'Animation',
-  'Movies',
-  'Fitness',
-  'Trending',
+export const PIPRATUBE_CATEGORIES = [
+  { id: 'All', label: 'সব (All)' },
+  { id: 'Live TV', label: '🔴 লাইভ টিভি', isSpecial: true },
+  { id: 'Bangla Natok', label: '🎭 বাংলা নাটক' },
+  { id: 'Bangla Cinema', label: '🎬 বাংলা সিনেমা' },
+  { id: 'Comedy', label: '😂 কমেডি' },
+  { id: 'Bangla Music', label: '🎵 বাংলা গান' },
+  { id: 'Action Movies', label: '🔥 অ্যাকশন' },
+  { id: 'Shorts', label: '⚡ শর্টস' },
+  { id: 'News', label: '📰 সংবাদ' },
+  { id: 'Sports', label: '🏆 খেলাধুলা' },
+  { id: 'Islamic', label: '🕌 ইসলামিক' },
+  { id: 'Cooking', label: '🍳 রেসিপি' },
+  { id: 'Tech', label: '📱 প্রযুক্তি' },
 ];
 
 export function Home() {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('All');
   const [refreshSeed, setRefreshSeed] = useState(() => Date.now());
   const [isRotating, setIsRotating] = useState(false);
@@ -76,7 +76,16 @@ export function Home() {
     }
   };
 
-  const handleCategoryClick = (cat: string, e?: React.MouseEvent<HTMLButtonElement>) => {
+  const handleCategoryClick = (cat: { id: string; label: string; isSpecial?: boolean }, e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (cat.id === 'Live TV') {
+      navigate('/live-tv');
+      return;
+    }
+    if (cat.id === 'Shorts') {
+      navigate('/shorts');
+      return;
+    }
+
     if (e?.currentTarget) {
       e.currentTarget.scrollIntoView({
         behavior: 'smooth',
@@ -84,7 +93,7 @@ export function Home() {
         block: 'nearest',
       });
     }
-    setActiveCategory(cat);
+    setActiveCategory(cat.id);
   };
 
   const handleRefresh = () => {
@@ -115,7 +124,9 @@ export function Home() {
   } = useInfiniteQuery({
     queryKey: ['videos', activeCategory, refreshSeed],
     queryFn: ({ pageParam = '' }) => {
-      return fetchCategoryVideos(activeCategory, 24, pageParam, refreshSeed);
+      // Query videos tailored for PipraTube
+      const queryTerm = activeCategory === 'All' ? 'Bangla Natok Cinema Entertainment' : activeCategory;
+      return fetchCategoryVideos(queryTerm, 24, pageParam, refreshSeed);
     },
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage?.nextPageToken || undefined,
@@ -150,7 +161,6 @@ export function Home() {
 
   // Interleave ads into the videos array: 1 ad per row (every 3 videos)
   const interleavedItems = useMemo(() => {
-    // Hide all native ads completely when user is Ad-Free Premium
     if (isPremium || !config.enabled || !config.placements.homeFeedNative?.enabled) {
       return videos;
     }
@@ -175,17 +185,17 @@ export function Home() {
   const channelAvatarMap = useChannelAvatars(channelIds);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white transition-colors">
+    <div className="flex flex-col h-full bg-[#0b0f15] text-white transition-colors pb-bottom-nav">
       {/* Horizontal Category Filter Chips Bar */}
-      <div className="sticky top-0 z-20 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md px-3 sm:px-4 py-2 flex items-center border-b border-neutral-200/80 dark:border-white/10 transition-colors relative">
+      <div className="sticky top-0 z-20 bg-[#0b0f15]/95 backdrop-blur-md px-3 sm:px-4 py-2.5 flex items-center border-b border-white/10 transition-colors relative">
         {/* Left Scroll Chevron with Gradient Mask */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-white dark:from-[#0f0f0f] via-white/90 dark:via-[#0f0f0f]/90 to-transparent">
+          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-[#0b0f15] via-[#0b0f15]/90 to-transparent">
             <button
               onClick={() => scrollCategories('left')}
-              className="p-1.5 rounded-full hover:bg-neutral-200 dark:hover:bg-white/15 text-neutral-800 dark:text-white bg-white/80 dark:bg-[#181818]/90 shadow-md border border-neutral-200 dark:border-white/10 transition-all cursor-pointer hover:scale-105"
+              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#181818]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
               aria-label="Scroll categories left"
-              title="Previous categories"
+              title="পূর্ববর্তী ক্যাটাগরি"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -199,24 +209,26 @@ export function Home() {
           aria-label="Video category filter chips"
           className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full py-1 px-1"
         >
-          {HOME_CATEGORIES.map((cat) => {
-            const isSelected = activeCategory === cat;
+          {PIPRATUBE_CATEGORIES.map((cat) => {
+            const isSelected = activeCategory === cat.id;
 
             return (
               <button
-                key={cat}
+                key={cat.id}
                 role="tab"
                 aria-selected={isSelected}
                 tabIndex={0}
                 onClick={(e) => handleCategoryClick(cat, e)}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 shrink-0 cursor-pointer select-none',
-                  isSelected
-                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold shadow-xs'
-                    : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200/80 dark:bg-white/10 dark:text-neutral-200 dark:hover:bg-white/15 active:scale-95'
+                  'px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 cursor-pointer select-none',
+                  cat.isSpecial
+                    ? 'bg-red-600/20 text-red-500 border border-red-500/30 hover:bg-red-600/30 font-bold'
+                    : isSelected
+                    ? 'bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white font-bold shadow-md shadow-pink-500/20'
+                    : 'bg-[#161d27] text-gray-300 hover:text-white hover:bg-white/10'
                 )}
               >
-                {cat}
+                {cat.label}
               </button>
             );
           })}
@@ -224,12 +236,12 @@ export function Home() {
 
         {/* Right Scroll Chevron with Gradient Mask */}
         {canScrollRight && (
-          <div className="absolute right-14 sm:right-28 top-0 bottom-0 z-10 hidden sm:flex items-center pr-2 pl-6 bg-gradient-to-l from-white dark:from-[#0f0f0f] via-white/90 dark:via-[#0f0f0f]/90 to-transparent">
+          <div className="absolute right-14 sm:right-28 top-0 bottom-0 z-10 hidden sm:flex items-center pr-2 pl-6 bg-gradient-to-l from-[#0b0f15] via-[#0b0f15]/90 to-transparent">
             <button
               onClick={() => scrollCategories('right')}
-              className="p-1.5 rounded-full hover:bg-neutral-200 dark:hover:bg-white/15 text-neutral-800 dark:text-white bg-white/80 dark:bg-[#181818]/90 shadow-md border border-neutral-200 dark:border-white/10 transition-all cursor-pointer hover:scale-105"
+              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#181818]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
               aria-label="Scroll categories right"
-              title="More categories"
+              title="পরবর্তী ক্যাটাগরি"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -237,68 +249,55 @@ export function Home() {
         )}
 
         {/* Refresh / Feed Shuffle Button */}
-        <div className="border-l border-neutral-200 dark:border-white/10 pl-2 sm:pl-3 shrink-0 flex items-center ml-1">
-          <Tooltip content={`Refresh ${activeCategory} feed`} position="bottom">
+        <div className="border-l border-white/10 pl-2 sm:pl-3 shrink-0 flex items-center ml-1">
+          <Tooltip content="ফিড রিফ্রেশ করুন" position="bottom">
             <button
               onClick={handleRefresh}
               disabled={isLoading || isRefetching}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-700 dark:text-neutral-200 text-xs font-semibold transition-all cursor-pointer border border-neutral-200 dark:border-white/10 active:scale-95 shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-200 text-xs font-semibold transition-all cursor-pointer border border-white/10 active:scale-95 shrink-0"
               aria-label="Refresh video feed"
             >
               <RotateCw
-                className={cn('w-3.5 h-3.5', (isRotating || isRefetching) && 'animate-spin text-red-600 dark:text-red-400')}
+                className={cn('w-3.5 h-3.5', (isRotating || isRefetching) && 'animate-spin text-[#ff2d6f]')}
               />
-              <span className="hidden md:inline">Refresh</span>
+              <span className="hidden md:inline">রিফ্রেশ</span>
             </button>
           </Tooltip>
         </div>
       </div>
 
-      {/* Active Filter Notice (only shown when filtered beyond 'All') */}
+      {/* Active Filter Notice */}
       {activeCategory !== 'All' && (
-        <div className="px-4 py-2 bg-neutral-50 dark:bg-white/5 border-b border-neutral-200 dark:border-white/5 flex items-center justify-between text-xs text-neutral-600 dark:text-white/70">
+        <div className="px-4 py-2 bg-[#121824] border-b border-white/10 flex items-center justify-between text-xs text-gray-300">
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-red-500" />
+            <Filter className="w-3.5 h-3.5 text-[#ff2d6f]" />
             <span>
-              Showing results for: <strong className="text-neutral-900 dark:text-white">{activeCategory}</strong>
+              ক্যাটাগরি: <strong className="text-white">{activeCategory}</strong>
             </span>
           </div>
           <button
-            onClick={() => handleCategoryClick('All')}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            onClick={() => setActiveCategory('All')}
+            className="flex items-center gap-1 text-xs font-semibold text-pink-400 hover:underline cursor-pointer"
           >
-            <span>Reset to All</span>
+            <span>সব দেখুন (All)</span>
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Video Grid & Content Area */}
-      <div className="p-3 sm:p-6">
+      {/* Main Content Area */}
+      <div className="p-3 sm:p-6 space-y-6">
+        {/* Watch History Quick Row if user has history */}
         <WatchHistorySection />
+
+        {/* 24/7 Bangla Live TV Channel Strip */}
+        <HomeLiveTvSection />
+
+        {/* Recommended Playlists */}
         {activeCategory === 'All' && <RecommendedPlaylistsSection />}
 
-        {/* Personalized Recommendations Banner */}
-        {(data?.pages?.[0] as any)?._isPersonalized && activeCategory === 'All' && (
-          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-red-600/10 via-amber-500/10 to-blue-600/10 border border-red-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-md">
-                <Sparkles className="w-5 h-5 fill-current" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-sm text-neutral-900 dark:text-white">Recommended For You</h4>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-600 text-white uppercase tracking-wider">
-                    Personalized Feed
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
-                  Curated based on your searches & watch activity: <strong className="text-neutral-900 dark:text-white">{(data?.pages?.[0] as any)?._interestSummary || 'Your Top Topics'}</strong>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Curated Bangla Natok Section */}
+        {activeCategory === 'All' && <HomeBanglaDramasSection />}
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -311,43 +310,50 @@ export function Home() {
             {isLoading ? (
               <div className="flex justify-center items-center h-48">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs text-neutral-500 dark:text-white/60">Loading {activeCategory} videos...</span>
+                  <div className="w-8 h-8 border-3 border-[#ff2d6f] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs text-gray-400">ভিডিও লোড হচ্ছে...</span>
                 </div>
               </div>
             ) : error ? (
-              <div className="text-center text-red-500 p-8 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl max-w-lg mx-auto my-8">
-                <h2 className="text-lg font-bold mb-1">Error Loading Videos</h2>
-                <p className="text-xs text-neutral-600 dark:text-white/60 mb-4">
-                  Failed to fetch {activeCategory} videos. Please try refreshing or check connection.
+              <div className="text-center text-red-400 p-8 bg-[#121824] border border-red-500/20 rounded-2xl max-w-lg mx-auto my-8">
+                <h2 className="text-lg font-bold mb-1">ভিডিও লোড করতে সমস্যা হয়েছে</h2>
+                <p className="text-xs text-gray-400 mb-4">
+                  অনুগ্রহ করে পুনরায় রিফ্রেশ করুন অথবা ইন্টারনেট সংযোগ যাচাই করুন।
                 </p>
                 <button
                   onClick={handleRefresh}
-                  className="px-4 py-2 bg-red-600 text-white rounded-full text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white rounded-full text-xs font-bold hover:opacity-95 transition-opacity cursor-pointer shadow-lg shadow-pink-500/25"
                 >
-                  Retry
+                  আবার চেষ্টা করুন
                 </button>
               </div>
             ) : videos.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-neutral-50 dark:bg-white/5 rounded-3xl border border-neutral-200 dark:border-white/10 max-w-md mx-auto my-8 flex flex-col items-center">
-                <Filter className="w-10 h-10 text-neutral-400 mb-3" />
-                <h3 className="text-base font-bold mb-1">No {activeCategory} videos found</h3>
-                <p className="text-xs text-neutral-500 dark:text-white/60 mb-4">
-                  Try choosing another category chip or reset back to All.
+              <div className="text-center py-16 px-4 bg-[#121824] rounded-3xl border border-white/10 max-w-md mx-auto my-8 flex flex-col items-center">
+                <Filter className="w-10 h-10 text-gray-500 mb-3" />
+                <h3 className="text-base font-bold mb-1">কোনো ভিডিও পাওয়া যায়নি</h3>
+                <p className="text-xs text-gray-400 mb-4">
+                  অন্য কোনো ক্যাটাগরি নির্বাচন করুন অথবা সব ভিডিওতে ফিরে যান।
                 </p>
                 <button
-                  onClick={() => handleCategoryClick('All')}
-                  className="px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-full text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                  onClick={() => setActiveCategory('All')}
+                  className="px-5 py-2 bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white rounded-full text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer"
                 >
-                  View All Videos
+                  সব ভিডিও দেখুন
                 </button>
               </div>
             ) : (
               <>
                 {/* Featured Content Hero Banner */}
-                {videos.length > 0 && (
+                {videos.length > 0 && activeCategory === 'All' && (
                   <HomeHeroBanner video={videos[0]} category={activeCategory} />
                 )}
+
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>আপনার জন্য সুপারিশকৃত ভিডিও (Recommended)</span>
+                  </h2>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
                   {interleavedItems.map((item: any, index: number) => {
@@ -381,9 +387,9 @@ export function Home() {
                 {/* Infinite scroll loader / target */}
                 <div ref={loadMoreRef} className="py-8 flex items-center justify-center gap-2">
                   {isFetchingNextPage && (
-                    <div className="flex items-center gap-2 text-sm font-semibold text-neutral-500 dark:text-white/70">
-                      <div className="w-5 h-5 border-3 border-red-600 border-t-transparent rounded-full animate-spin" />
-                      <span>Loading more {activeCategory} videos...</span>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
+                      <div className="w-5 h-5 border-3 border-[#ff2d6f] border-t-transparent rounded-full animate-spin" />
+                      <span>আরও ভিডিও লোড হচ্ছে...</span>
                     </div>
                   )}
                 </div>
