@@ -1111,20 +1111,34 @@ export function getCuratedVideosByCategory(
       .map((obj) => obj.val);
   }
 
-  // Pagination support
+  // Unlimited continuous infinite pagination
   const pageIndex = pageToken ? parseInt(pageToken, 10) || 0 : 0;
   const start = pageIndex * pageSize;
-  const pagedItems = items.slice(start, start + pageSize);
+  const pagedItems: (CuratedVideoItem & { feedKey?: string })[] = [];
 
-  const hasNext = start + pageSize < items.length;
-  const nextPageToken = hasNext ? String(pageIndex + 1) : undefined;
+  if (items.length > 0) {
+    for (let i = 0; i < pageSize; i++) {
+      const globalIdx = start + i;
+      const baseItem = items[globalIdx % items.length];
+      const cycle = Math.floor(globalIdx / items.length);
+
+      // Keep real YouTube id intact for playback, add feedKey for unique React rendering
+      pagedItems.push({
+        ...baseItem,
+        feedKey: `${baseItem.id}-p${pageIndex}-i${i}-c${cycle}`,
+      });
+    }
+  }
+
+  // Never terminate: always yield next continuous pageToken
+  const nextPageToken = String(pageIndex + 1);
 
   return {
     kind: 'youtube#videoListResponse',
     items: pagedItems,
     nextPageToken,
     pageInfo: {
-      totalResults: items.length,
+      totalResults: 999999, // Unlimited
       resultsPerPage: pageSize,
     },
     _category: normalized,

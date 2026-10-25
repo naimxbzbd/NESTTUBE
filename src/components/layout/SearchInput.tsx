@@ -240,11 +240,11 @@ export function SearchInput({
       <span>
         {parts.map((part, index) =>
           part.toLowerCase() === trimmedQuery.toLowerCase() ? (
-            <span key={index} className="font-bold text-neutral-900 dark:text-white">
+            <span key={`search-part-match-${index}`} className="font-bold text-neutral-900 dark:text-white">
               {part}
             </span>
           ) : (
-            <span key={index} className="text-neutral-700 dark:text-neutral-300">
+            <span key={`search-part-text-${index}`} className="text-neutral-700 dark:text-neutral-300">
               {part}
             </span>
           )

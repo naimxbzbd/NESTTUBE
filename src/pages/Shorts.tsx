@@ -704,7 +704,7 @@ export function Shorts() {
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
               {(commentsList[activeVidId] || commentsList['default']).map((comment, i) => (
-                <div key={i} className="flex items-start gap-3 text-sm">
+                <div key={`shorts-comment-${comment.user}-${i}`} className="flex items-start gap-3 text-sm">
                   <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0 overflow-hidden">
                     <img
                       src={`https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(comment.user)}`}

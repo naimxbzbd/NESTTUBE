@@ -1,83 +1,89 @@
-# Animated NestTube Bird Flight & Logo Experience
+# Implementation Plan: YouTube-Style Authentication, Creator Studio Dashboard, and Admin Panel
 
-NestTube প্ল্যাটফর্মের জন্য ব্যবহারকারীর আপলোডকৃত অফিসিয়াল লোগো (`image_50190da0.png`) সমন্বয়ে একটি জীবন্ত, স্মুথ এবং আকর্ষণীয় অ্যানিমেটেড বার্ড-ফ্লাইট লোগো সিস্টেম তৈরির রূপরেখা।
+Build an enterprise-grade YouTube-style ecosystem for the application featuring role-based authentication, a Creator Studio Dashboard (uploading, video manager, channel analytics, channel branding), and an Admin Control Panel (user management, content moderation, platform statistics) powered by Firebase Authentication and Cloud Firestore, styled in deep obsidian glassmorphism.
 
-***
+---
 
-### User Review & Critical Decisions
+## 1. Architecture & Role Hierarchy
 
-> [!IMPORTANT]
-> ব্যবহারকারীর সরাসরি উত্তরের ভিত্তিতে নিম্নোক্ত সিদ্ধান্তসমূহ নিশ্চিত করা হয়েছে:
+Three distinct privilege tiers will be supported:
 
-- **Confirmed Decision 1 (Layered Visual Architecture)**: ব্যবহারকারীর আপলোডকৃত হাই-কোয়ালিটি NestTube লোগো (`/public/assets/aistudio/image_50190da0.png`) বেস হিসেবে থাকবে। বাসা (Nest), ৩ডি লাল ও সাদা লেটারিং এবং ডানা ঝাপটানো নীল পাখিটির লেয়ার্ড আর্কিটেকচার তৈরি করা হবে।
-- **Confirmed Decision 2 (Flight Timing & Routine)**: পাখিটি প্রতি ৮ থেকে ১২ সেকেন্ড পরপর স্বয়ংক্রিয়ভাবে বাসা থেকে উড়াল দেবে এবং লোগোর ওপর দিয়ে চমৎকার আর্ক তৈরি করে আবার বাসায় ফিরে এসে শান্তভাবে বসবে (Resting State)। এছাড়াও ব্যবহারকারী লোগোর ওপর মাউস হোভার (Hover) বা ট্যাপ করলেও পাখিটি সাথে সাথে উড়াল দেবে।
-- **Confirmed Decision 3 (Playful Flight Path & Motion)**: পাখিটি শুধুমাত্র বাসার চারপাশে নয়, বরং হেডার বারের ওপর দিয়ে ও NestTube অক্ষরের চারপাশে প্লেফুল সুইপিং আর্ক (Swooping Arc) তৈরি করে উড়ে বেড়াবে, সাথে থাকবে উইং-ফ্ল্যাপ অ্যানিমেশন ও হালকা পালক/স্পার্কল ট্রেইল।
+| Role | Permissions & Access |
+|---|---|
+| **Viewer (Default User)** | Watch videos/Live TV, like, comment, save to playlists/watch later, customize viewer profile. |
+| **Creator (Channel Owner)** | All Viewer permissions + YouTube Studio dashboard, video uploader, video editing/deletion, channel analytics, branding. |
+| **Platform Admin** | All Creator permissions + Admin Control Panel, user role promotion/ban, content takedown & moderation, global platform metrics. |
 
-***
+*Initial Platform Admin:* Bootstrapped automatically to the user's account (`h4k3rxbd@gmail.com`).
 
-### 1. Overview & Core Concept
+---
 
-- **What It Does**: সাধারণ স্ট্যাটিক লোগোর পরিবর্তে একটি ডাইনামিক লাইভ লোগো তৈরি করা হবে। পাখির বাসার ভেতর নীল রঙের কিউট পাখিটি বসে থাকবে, কিছুক্ষণ পর ডানা ঝাপটিয়ে উড়ে গিয়ে "NestTube" লেখার ওপর দিয়ে বৃত্তাকার ও ঢেউ খেলানো আর্কে ঘুরবে, তারপর স্মুথলি নেমে এসে বাসায় অবতরণ করবে।
-- **Target Audience / Persona**: প্ল্যাটফর্ম ভিজিটর ও দর্শকরা লোগোটির এই জীবন্ত মিথস্ক্রিয়া দেখে আনন্দিত হবে, যা প্ল্যাটফর্মের ব্র্যান্ড ভ্যালু ও আকর্ষণ বহুগুণ বাড়িয়ে তুলবে।
-- **Key Value**: জিরো ল্যাগ, লাইটওয়েট পারফরম্যান্স (SVG/CSS ভেক্টর ফ্রেম ও রিয়্যাক্ট স্প্রিং/ট্রানজিশন), ক্রিস্প ৪K ভিজ্যুয়াল এবং ডেস্কটপ ও মোবাইল উভয় হেডারে নিখুঁত ফিট।
+## 2. Technical Stack & Data Modeling
 
-***
+### Cloud Services (Firebase)
+1. **Firebase Authentication**:
+   - Google Sign-In with popup provider.
+   - Auth state listener with role resolution via Firestore document.
+2. **Cloud Firestore**:
+   - `users/{uid}`: Profile data (`displayName`, `email`, `photoURL`, `role`, `handle`, `createdAt`, `subscriberCount`).
+   - `admins/{uid}`: Admin identity verification documents (secures ABAC rule checks).
+   - `videos/{videoId}`: Video documents (`title`, `description`, `videoUrl`, `thumbnailUrl`, `creatorId`, `creatorName`, `views`, `likes`, `visibility`, `status`, `createdAt`).
+   - `reports/{reportId}`: Content moderation flags.
+   - `platform_metrics/overview`: Aggregated statistics.
 
-### 2. User Experience & Visual Design
+### Security & Compliance
+- Strict schema enforcement via `firebase-blueprint.json`.
+- Zero-Trust Firestore Security Rules (`firestore.rules`) with `isValidVideo()`, `isValidUser()`, `isAdmin()`, and `handleFirestoreError` contextual logging.
 
-#### Five-Stage Flight Lifecycle (পাখির ৫-ধাপের জীবনচক্র)
-1. **পর্যায় ১: বাসায় বিশ্রাম (Resting in Nest)**:
-   - পাখিটি লাল বাসার ভেতরে ডিমগুলোর পাশে আরামে বসে থাকবে। মাঝে মাঝে হালকা শ্বাস নেওয়ার মতো সুক্ষ্ম বব (Bobbing) এবং অক্ষিগোলক পিটপিট করার প্রাণবন্ত ভাব থাকবে।
-2. **পর্যায় ২: উড়াল প্রস্তুতি ও ডানা মেলা (Takeoff & Flutter)**:
-   - প্রতি ৮-১২ সেকেন্ড পর (বা হোভার করলে) পাখিটি কিচিরমিচির ভঙ্গিমায় একটু লাফিয়ে উঠবে এবং দ্রুত ডানা ঝাপটানো শুরু করবে।
-3. **পর্যায় ৩: সুইপিং আর্ক ফ্লাইট (Swooping Flight Path)**:
-   - পাখিটি বাসা থেকে বের হয়ে উপরের দিকে উঠবে, ডান দিকে "NestTube" লেখার উপর দিয়ে ঢেউ খেলানো গতিতে উড়ে যাবে।
-   - ফ্লাইং পাথের সাথে সাথে পাখির বডি অ্যাঙ্গেল (Banking Angle: -15° থেকে +20°) প্রাকৃতিক নিয়মে পরিবর্তিত হবে।
-4. **পর্যায় ৪: গ্লাইডিং ও ব্যাক-লুপ (Gliding & Return Loop)**:
-   - পুরো লোগোর ওপর দিয়ে একটি সম্পূর্ণ চক্রাকার লুপ সম্পন্ন করে পাখিটি ধীরে ধীরে নিচে নেমে আসবে।
-5. **পর্যায় ৫: ল্যান্ডিং ও আরাম (Soft Touchdown)**:
-   - ডানা গুটিয়ে বাসাটির ঠিক মাঝখানে নরমভাবে অবতরণ করবে এবং পরবর্তী উড়ালের জন্য বিশ্রাম নেবে।
+---
 
-#### Visual Identity & Styling
-- **লোগো ইমেজ ও আর্টওয়ার্ক**: ব্যবহারকারীর দেওয়া লাল বাসা, রুবি-রেড প্লে বাটন, লাল "NEST" এবং হোয়াইট "TUBE" সম্বলিত ক্রিস্প আর্টওয়ার্ক।
-- **পাখির রঙ**: জীবন্ত আকাশী-নীল পালক, সোনালী ঠোঁট এবং কিউট এক্সপ্রেশন।
-- **অ্যানিমেশন স্মুথনেস**: ৬০fps মসৃণ কি-ফ্রেম ও হার্ডওয়্যার অ্যাকসেলারেটেড ট্রানজিশন (`transform: translate3d(), rotate()`)।
+## 3. Key Components & User Interface
 
-***
+### A. Authentication & User Profile Modal
+- **Obsidian Glass Modal**:
+  - Google Sign-In button with subtle aurora gradient glow.
+  - Profile dropdown with avatar, channel link, Studio link, Admin panel link (if admin), and sign-out.
+  - Active session persistence across browser reloads.
 
-### 3. Key Product Decisions & Trade-Offs
+### B. YouTube Studio (Creator Dashboard)
+- **Navigation Bar**: Tabbed sub-views:
+  1. **Dashboard Overview**: Latest video performance, total views, subscriber count, quick actions.
+  2. **Content Manager (Videos)**: Filterable table of published videos with view counts, likes, visibility toggle, edit metadata modal, and delete confirmation.
+  3. **Video Uploader**: Modal/page with real-time preview (video link, thumbnail URL, title, tags, description, category selector).
+  4. **Analytics**: Visual interactive charts showing view velocity, engagement rate, top-performing videos, and watch stats.
+  5. **Customization**: Channel banner, avatar, handle (`@username`), and bio.
 
-- **Decision 1: React Component Driven vs Heavy GIF/Video**:
-  - *Chosen Approach*: একটি ডেডিকেটেড রিঅ্যাক্ট কম্পোনেন্ট (`AnimatedNestLogo.tsx`) তৈরি করা হবে যেখানে মূল হাই-রেজোলিউশন লোগোর সাথে ভেক্টর ও পিএনজি লেয়ারড ফ্লাইং বার্ড সমন্বিত থাকবে।
-  - *Why*: হেভি জিআইএফ ফাইলে ব্যাকগ্রাউন্ড ব্লেন্ডিং নষ্ট হয় ও সাইজ বড় হয়। রিঅ্যাক্ট কম্পোনেন্টে ক্রিস্প রেজোলিউশন বজায় থাকে এবং হোভার/ক্লিক ইন্টারেকশন নিখুঁতভাবে কাজ করে।
-- **Decision 2: Non-Intrusive Layout Dimensions**:
-  - *Chosen Approach*: লোগো ও পাখির ফ্লাইং জোনের জন্য একটি ওভারফ্লো-ভিজিবল কন্টেইনার রাখা হবে, যাতে হেডার বারের সার্চ বার বা অন্যান্য বাটনে কোনো লেআউট শিফট (CLS) না ঘটে।
-  - *Why*: হেডারের ইউজার এক্সপেরিয়েন্স ও সার্চিং কার্যকারিতা অক্ষুণ্ণ থাকবে।
+### C. Admin Control Panel
+- **Navigation & Security Gate**: Route/view guard checking `admins/{uid}` document.
+- **Sub-sections**:
+  1. **Platform Analytics**: Total users, total active channels, video count, view impressions.
+  2. **User Management**: Searchable user roster with role switcher (`viewer`, `creator`, `admin`) and account status toggle (`active`, `suspended`).
+  3. **Content Moderation Queue**: List of all uploaded videos with 1-click ban/unpublish, feature to frontpage, or delete.
 
-***
+---
 
-### 4. Technical Architecture & Component Mapping
+## 4. Implementation Phases
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        TOP NAVIGATION HEADER                           │
-├────────────────────────────────────────────────────────────────────────┤
-│  [Menu]  [--- AnimatedNestLogo Component ---]    [Search Bar]  [Coins] │
-│          │                                  │                          │
-│          │   ╭───── Swooping Flight Arc ──╮ │                          │
-│          │  ╱                              ╲│                          │
-│          │ 🐦 (Flying Bird with Wings)      │                          │
-│          │  ╲                              ╱│                          │
-│          │   [Nest (Base)] + [NESTTUBE] ◄──╯│                          │
-│          └──────────────────────────────────┘                          │
-└────────────────────────────────────────────────────────────────────────┘
-```
+- **Phase 1: Firebase Setup & Provisioning**
+  - Trigger Firebase setup UI for user confirmation.
+  - Verify terms acceptance and provision Firebase via `ProvisionFirebase`.
+  - Install Firebase client SDK.
+  - Create `firebase-blueprint.json` and generate hardened `firestore.rules`.
+  - Deploy security rules via `DeployRules`.
 
-#### New Files & Updates
-1. `src/components/layout/AnimatedNestLogo.tsx`:
-   - ইন্টারেক্টিভ লোগো কম্পোনেন্ট। এতে ব্যবহারকারীর আপলোডকৃত লোগো থাকবে, সাথে স্বয়ংক্রিয় টাইমার (প্রতি ৮-১২ সেকেন্ডে রান্ডম ইন্টারভাল) এবং মাউস হোভার ট্র্রিগার।
-   - ফ্লাইং বার্ডের সুইপিং আর্ক ও ফ্ল্যাটারিং উইং ফ্রেমের নিখুঁত সিএসএস/মোশন কনফিগারেশন।
-2. `src/components/layout/Header.tsx`:
-   - স্ট্যাটিক ইমেজের পরিবর্তে `AnimatedNestLogo` বসানো।
-3. `src/components/layout/Sidebar.tsx`:
-   - মোবাইল ড্রয়ার হেডারে কম্প্যাক্ট আকারে অ্যানিমেটেড লোগো সংযুক্ত করা।
+- **Phase 2: Auth Context & State Management**
+  - Implement `src/contexts/AuthContext.tsx` with user state, role detection, sign-in, and sign-out.
+  - Implement Firestore helper utilities with error wrapping (`handleFirestoreError`).
+
+- **Phase 3: Creator Studio Dashboard Components**
+  - Create `src/components/studio/CreatorStudio.tsx`, `VideoUploader.tsx`, `ContentTable.tsx`, and `StudioAnalytics.tsx`.
+  - Wire video submissions directly into the main app video feed so creator uploads appear instantly on Home and Explore pages.
+
+- **Phase 4: Admin Control Panel Components**
+  - Create `src/components/admin/AdminPanel.tsx`, `UserRoster.tsx`, and `ContentModeration.tsx`.
+  - Wire role adjustments and status flags to Firestore.
+
+- **Phase 5: Navigation & UI Integration**
+  - Update top navigation bar with User Avatar menu, "Studio" button, and "Admin" badge.
+  - Test responsive layout and seamless obsidian glass aesthetics.
+  - Run build compilation and verify zero TypeScript or lint errors.

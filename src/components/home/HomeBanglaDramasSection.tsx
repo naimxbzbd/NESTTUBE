@@ -42,7 +42,7 @@ export const HomeBanglaDramasSection: React.FC = () => {
         {natoks.slice(0, 4).map((item, index) => (
           <div
             key={`natok-${item.id}-${index}`}
-            className="group relative bg-[#121824] border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/5 flex flex-col"
+            className="group relative glass-card rounded-2xl overflow-hidden transition-all duration-300 flex flex-col"
           >
             {/* Thumbnail */}
             <Link to={`/watch/${item.id}`} className="relative aspect-video w-full overflow-hidden block">

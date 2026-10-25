@@ -7,7 +7,7 @@ export function MobileNav() {
   const location = useLocation();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0b0f15]/95 backdrop-blur-lg border-t border-white/10 grid grid-cols-5 items-center z-40 text-white px-1">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-header border-t border-white/10 grid grid-cols-5 items-center z-40 text-white px-1 shadow-2xl">
       {/* Home */}
       <Link 
         to="/" 

@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "User accounts with role (viewer, creator, admin), channel branding, and profile info",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["viewer", "creator", "admin"] },
+        "avatarUrl": { "type": "string" },
+        "channelName": { "type": "string" },
+        "channelHandle": { "type": "string" },
+        "bio": { "type": "string" },
+        "bannerUrl": { "type": "string" },
+        "isPremium": { "type": "boolean" },
+        "subscribersCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "name", "role", "createdAt"]
+    },
+    "admins": {
+      "title": "Admin List",
+      "description": "Fast exists() lookup collection for platform administrators",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "grantedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role", "grantedAt"]
+    },
+    "videos": {
+      "title": "Video Content",
+      "description": "Videos uploaded by creators and admins with playback metadata and metrics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "uploaderUid": { "type": "string" },
+        "uploaderEmail": { "type": "string" },
+        "channelName": { "type": "string" },
+        "channelId": { "type": "string" },
+        "category": { "type": "string" },
+        "visibility": { "type": "string", "enum": ["public", "unlisted", "private"] },
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "duration": { "type": "string" },
+        "status": { "type": "string", "enum": ["approved", "pending", "flagged", "removed"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "videoUrl", "uploaderUid", "visibility", "createdAt"]
+    },
+    "reports": {
+      "title": "Moderation Reports",
+      "description": "Flagged videos reported by viewers for admin moderation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "videoId": { "type": "string" },
+        "videoTitle": { "type": "string" },
+        "reason": { "type": "string" },
+        "reportedByUid": { "type": "string" },
+        "reportedByEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved", "dismissed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "videoId", "reason", "reportedByUid", "createdAt"]
+    },
+    "platform_metrics": {
+      "title": "Platform Metrics",
+      "description": "Aggregated stats for the admin dashboard",
+      "type": "object",
+      "properties": {
+        "totalVideos": { "type": "number" },
+        "totalUsers": { "type": "number" },
+        "totalViews": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["totalVideos", "totalUsers", "totalViews"]
+    }
+  }
+}

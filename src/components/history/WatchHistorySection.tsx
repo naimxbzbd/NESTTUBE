@@ -88,7 +88,7 @@ export function WatchHistorySection() {
           {sortedHistory.map((item, idx) => (
             <div
               key={`history-${item.id}-${item.watchedAt || idx}`}
-              className="w-56 shrink-0 flex flex-col gap-2 group/card relative"
+              className="w-56 shrink-0 flex flex-col gap-2 group/card relative glass-card p-2 rounded-2xl"
             >
               <div className="relative aspect-video rounded-xl overflow-hidden bg-neutral-100 dark:bg-white/5">
                 <Link to={`/watch/${item.id}`} className="block w-full h-full">

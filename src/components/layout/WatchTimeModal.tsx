@@ -61,7 +61,7 @@ export function WatchTimeModal({ isOpen, onClose }: WatchTimeModalProps) {
                 const heightPercent = Math.min(100, Math.max(15, (val / 100) * 100));
                 const isToday = idx === 6;
                 return (
-                  <div key={day} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                  <div key={`watch-day-${day}-${idx}`} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
                     <span className="text-[10px] font-bold text-neutral-500 dark:text-white/60 opacity-0 group-hover:opacity-100 transition-opacity">
                       {val}m
                     </span>

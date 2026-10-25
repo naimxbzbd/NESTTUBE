@@ -337,6 +337,48 @@ export const getChannelDetails = async (channelId: string) => {
 };
 
 export const getVideoDetails = async (videoId: string) => {
+  // Check if this is a Firestore community uploaded video
+  if (videoId && videoId.startsWith('vid_')) {
+    try {
+      const { db, doc, getDoc } = await import('../firebase');
+      const snap = await getDoc(doc(db, 'videos', videoId));
+      if (snap.exists()) {
+        const data = snap.data();
+        return {
+          kind: 'youtube#videoListResponse',
+          items: [
+            {
+              id: videoId,
+              snippet: {
+                title: data.title,
+                description: data.description,
+                channelTitle: data.channelName,
+                channelId: data.channelId || 'channel_' + data.uploaderUid,
+                publishedAt: data.createdAt,
+                thumbnails: {
+                  default: { url: data.thumbnailUrl },
+                  medium: { url: data.thumbnailUrl },
+                  high: { url: data.thumbnailUrl },
+                },
+              },
+              contentDetails: {
+                duration: data.duration || 'PT12M00S',
+              },
+              statistics: {
+                viewCount: String(data.views || 0),
+                likeCount: String(data.likes || 0),
+                commentCount: '0',
+              },
+              _videoUrl: data.videoUrl,
+            },
+          ],
+        };
+      }
+    } catch (err) {
+      console.warn('Error reading Firestore video details:', err);
+    }
+  }
+
   try {
     const response = await youtubeApi.get('/videos', {
       params: {

@@ -181,7 +181,7 @@ export function SponsorshipModal({ isOpen, onClose }: SponsorshipModalProps) {
 
                       <ul className="space-y-2 mb-4">
                         {tier.features.map((feat, idx) => (
-                          <li key={idx} className="text-xs text-neutral-600 dark:text-white/80 flex items-start gap-2">
+                          <li key={`feat-${tier.id}-${idx}`} className="text-xs text-neutral-600 dark:text-white/80 flex items-start gap-2">
                             <Check className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
                             <span>{feat}</span>
                           </li>
@@ -218,7 +218,7 @@ export function SponsorshipModal({ isOpen, onClose }: SponsorshipModalProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {ACTIVE_SPONSORS.map((sp, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl bg-white dark:bg-[#181818] border border-neutral-200 dark:border-white/10 flex items-center gap-2.5">
+                <div key={`sponsor-${sp.name}-${idx}`} className="p-2.5 rounded-xl bg-white dark:bg-[#181818] border border-neutral-200 dark:border-white/10 flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                     {sp.logo}
                   </div>

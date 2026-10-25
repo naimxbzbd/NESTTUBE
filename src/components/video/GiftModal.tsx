@@ -38,10 +38,10 @@ export const GiftModal: React.FC = () => {
   const hasEnoughCoins = coins >= selectedGift.coins;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#121824] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#161d27] to-[#121824]">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#ff2d6f] to-[#c026d3] flex items-center justify-center shadow-lg shadow-pink-500/20">
               <Gift className="w-5 h-5 text-white" />
@@ -72,11 +72,11 @@ export const GiftModal: React.FC = () => {
           ) : (
             <>
               {/* User Balance Strip */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[#161d27] border border-white/5">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl glass-card">
+                <div className="flex items-center gap-2.5">
                   <Coins className="w-5 h-5 text-amber-400" />
                   <div>
-                    <span className="text-xs text-gray-400 block">আপনার বর্তমান ব্যালান্স</span>
+                    <span className="text-xs text-slate-400 block">আপনার বর্তমান ব্যালান্স</span>
                     <span className="text-sm font-bold text-white font-mono">{coins} কয়েন</span>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export const GiftModal: React.FC = () => {
                     closeGiftModal();
                     openRechargeModal();
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-pink-500/20 text-[#ff2d6f] hover:bg-pink-500/30 text-xs font-bold flex items-center gap-1.5 border border-pink-500/30 transition-all"
+                  className="px-3.5 py-1.5 rounded-xl bg-pink-500/20 text-[#ff2d6f] hover:bg-pink-500/30 text-xs font-bold flex items-center gap-1.5 border border-pink-500/30 transition-all cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>কয়েন কিনুন</span>
@@ -94,7 +94,7 @@ export const GiftModal: React.FC = () => {
 
               {/* Gifts Grid */}
               <div>
-                <label className="text-xs font-semibold text-gray-300 block mb-2.5">
+                <label className="text-xs font-semibold text-slate-300 block mb-2.5">
                   একটি উপহার নির্বাচন করুন:
                 </label>
                 <div className="grid grid-cols-3 gap-2.5">
@@ -106,10 +106,10 @@ export const GiftModal: React.FC = () => {
                         key={gift.id}
                         type="button"
                         onClick={() => setSelectedGift(gift)}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-center transition-all ${
+                        className={`p-3 rounded-2xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-pink-500/20 border-[#ff2d6f] shadow-lg shadow-pink-500/10 scale-[1.02]'
-                            : 'bg-[#161d27] border-white/5 hover:border-white/20'
+                            ? 'bg-gradient-to-b from-pink-500/25 to-purple-500/20 border-[#ff2d6f] ring-2 ring-pink-500/30 shadow-lg shadow-pink-500/20 scale-[1.02]'
+                            : 'glass-card border-white/5 hover:border-white/20'
                         } ${!canAfford ? 'opacity-70' : ''}`}
                       >
                         <span className="text-3xl mb-1 filter drop-shadow-md">{gift.icon}</span>

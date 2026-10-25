@@ -37,10 +37,10 @@ export const CoinModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#121824] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
         {/* Header with PipraTube Brand Gradient */}
-        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#161d27] to-[#121824]">
+        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff9a1f] to-[#ff2d6f] flex items-center justify-center shadow-lg shadow-pink-500/20">
               <Coins className="w-6 h-6 text-white" />
@@ -91,7 +91,7 @@ export const CoinModal: React.FC = () => {
                         className={`relative p-3.5 rounded-xl border text-left transition-all ${
                           isSelected
                             ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-[#ff2d6f] shadow-lg shadow-pink-500/10'
-                            : 'bg-[#161d27] border-white/5 hover:border-white/20'
+                            : 'glass-card border-white/5 hover:border-white/20'
                         }`}
                       >
                         {pkg.bestValue && (

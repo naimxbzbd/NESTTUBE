@@ -342,7 +342,7 @@ export function VoiceSearchModal({ isOpen, onClose }: VoiceSearchModalProps) {
                 const dynamicHeight = Math.max(6, Math.min(32, 8 + audioVolume * 0.3 * multiplier));
                 return (
                   <span
-                    key={i}
+                    key={`wave-bar-${i}`}
                     className="w-1.5 bg-red-600 rounded-full transition-all duration-75"
                     style={{ height: `${dynamicHeight}px` }}
                   />

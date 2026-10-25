@@ -7,6 +7,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import { MiniPlayerProvider } from './context/MiniPlayerContext';
 import { AdsterraProvider } from './context/AdsterraContext';
 import { InterstitialAdModal } from './components/ads/InterstitialAdModal';
@@ -31,6 +32,8 @@ import { PlaylistView } from './pages/PlaylistView';
 import { HistoryPage } from './pages/HistoryPage';
 import { Trending } from './pages/Trending';
 import { Library } from './pages/Library';
+import { Studio } from './pages/Studio';
+import { AdminPanel } from './pages/AdminPanel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,25 +47,29 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <ThemeProvider>
-      <AdsterraProvider>
-        <MiniPlayerProvider>
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="live-tv" element={<LiveTv />} />
-                  <Route path="watch/:id" element={<Watch />} />
-                  <Route path="search" element={<Search />} />
-                  <Route path="channel/:id" element={<Channel />} />
-                  <Route path="shorts" element={<Shorts />} />
-                  <Route path="subscriptions" element={<Subscriptions />} />
-                  <Route path="playlist/:type" element={<PlaylistView />} />
-                  <Route path="history" element={<HistoryPage />} />
-                  <Route path="trending" element={<Trending />} />
-                  <Route path="library" element={<Library />} />
-                </Route>
-              </Routes>
+      <AuthProvider>
+        <AdsterraProvider>
+          <MiniPlayerProvider>
+            <QueryClientProvider client={queryClient}>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="live-tv" element={<LiveTv />} />
+                    <Route path="live" element={<LiveTv />} />
+                    <Route path="watch/:id" element={<Watch />} />
+                    <Route path="search" element={<Search />} />
+                    <Route path="channel/:id" element={<Channel />} />
+                    <Route path="shorts" element={<Shorts />} />
+                    <Route path="subscriptions" element={<Subscriptions />} />
+                    <Route path="playlist/:type" element={<PlaylistView />} />
+                    <Route path="history" element={<HistoryPage />} />
+                    <Route path="trending" element={<Trending />} />
+                    <Route path="library" element={<Library />} />
+                    <Route path="studio" element={<Studio />} />
+                    <Route path="admin" element={<AdminPanel />} />
+                  </Route>
+                </Routes>
               {/* PipraCoins Wallet & Virtual Gifts Modals */}
               <CoinModal />
               <GiftModal />
@@ -80,6 +87,7 @@ export default function App() {
           </QueryClientProvider>
         </MiniPlayerProvider>
       </AdsterraProvider>
-    </ThemeProvider>
-  );
+    </AuthProvider>
+  </ThemeProvider>
+);
 }

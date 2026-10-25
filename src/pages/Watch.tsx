@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle, Gift } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle, Gift, Flag } from 'lucide-react';
 import { cn, handleThumbnailError } from '../lib/utils';
 import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails, getPlayerRecommendations } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
@@ -15,6 +15,8 @@ import { Tooltip } from '../components/ui/Tooltip';
 import { getFallbackChannelAvatar } from '../lib/avatar';
 import { AdContainer } from '../components/ads/AdContainer';
 import { useAdsterra } from '../context/AdsterraContext';
+import { useAuth } from '../context/AuthContext';
+import { reportVideo, incrementVideoViews } from '../services/videoFirestore';
 
 export function Watch() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +35,20 @@ export function Watch() {
   const [playerKey, setPlayerKey] = useState(0);
   const [useNoCookie, setUseNoCookie] = useState(true);
   const [showPlayerHelp, setShowPlayerHelp] = useState(false);
+
+  const { user } = useAuth();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('অনুচিত বা আপত্তিকর কনটেন্ট');
+  const [reportCustomReason, setReportCustomReason] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportToast, setReportToast] = useState('');
+
+  // Increment views for custom Firestore videos
+  useEffect(() => {
+    if (id && id.startsWith('vid_')) {
+      incrementVideoViews(id);
+    }
+  }, [id]);
 
   const { openMiniPlayer } = useMiniPlayer();
   const { incrementWatchCount, triggerInterstitialIfNeeded } = useAdsterra();
@@ -185,7 +201,7 @@ export function Watch() {
   const videoCustomComments = (id && customComments[id]) || [];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 bg-white dark:bg-[#0f0f0f] text-neutral-900 dark:text-white min-h-full transition-colors relative">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 bg-transparent text-white min-h-full transition-colors relative pb-bottom-nav">
       
       {/* Toast popups */}
       {downloadToast && (
@@ -212,19 +228,30 @@ export function Watch() {
         
         {/* Video Player Box */}
         <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden relative shadow-2xl group">
-          <iframe
-            key={`${id}-${playerKey}-${useNoCookie ? 'nocookie' : 'standard'}`}
-            src={`${useNoCookie ? 'https://www.youtube-nocookie.com' : 'https://www.youtube.com'}/embed/${id}?autoplay=${
-              isAutoplay ? '1' : '0'
-            }&rel=0&enablejsapi=1&playsinline=1${playlistIds ? `&playlist=${playlistIds}` : ''}${
-              typeof window !== 'undefined' && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : ''
-            }`}
-            title={video.snippet.title}
-            className="w-full h-full border-0"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          {(video as any)?._videoUrl ? (
+            <video
+              key={`${id}-${playerKey}`}
+              src={(video as any)._videoUrl}
+              controls
+              autoPlay={isAutoplay}
+              playsInline
+              className="w-full h-full object-contain bg-black"
+            />
+          ) : (
+            <iframe
+              key={`${id}-${playerKey}-${useNoCookie ? 'nocookie' : 'standard'}`}
+              src={`${useNoCookie ? 'https://www.youtube-nocookie.com' : 'https://www.youtube.com'}/embed/${id}?autoplay=${
+                isAutoplay ? '1' : '0'
+              }&rel=0&enablejsapi=1&playsinline=1${playlistIds ? `&playlist=${playlistIds}` : ''}${
+                typeof window !== 'undefined' && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : ''
+              }`}
+              title={video.snippet.title}
+              className="w-full h-full border-0"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          )}
         </div>
 
         {/* Player Options & Troubleshooting Toolbar */}
@@ -375,24 +402,35 @@ export function Watch() {
               <ListPlus className="w-5 h-5" strokeWidth={1.5} />
             </button>
 
+            {/* Flag / Report Video button */}
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="w-9 h-9 flex justify-center items-center bg-neutral-100 hover:bg-red-500/20 dark:bg-white/10 dark:hover:bg-red-500/20 text-neutral-500 hover:text-red-400 dark:text-white/60 dark:hover:text-red-400 rounded-full transition-colors cursor-pointer shrink-0"
+              title="রিপোর্ট বা অভিযোগ করুন"
+            >
+              <Flag className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+
           </div>
         </div>
 
         {/* Description Box */}
         <div 
-          className="bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/20 p-3 rounded-xl text-sm text-[#0f0f0f] dark:text-[#f1f1f1] cursor-pointer mt-2 transition-colors"
+          className="glass-panel p-4 rounded-2xl text-sm text-slate-200 cursor-pointer mt-2 transition-all hover:border-white/20"
           onClick={() => setShowFullDescription(!showFullDescription)}
         >
-          <div className="font-semibold text-sm mb-1">
-            {formatViewCount(video.statistics.viewCount)} views  {formatPublishedAt(video.snippet.publishedAt)}
+          <div className="font-bold text-sm mb-1.5 text-white flex items-center gap-2">
+            <span>{formatViewCount(video.statistics.viewCount)} views</span>
+            <span>•</span>
+            <span className="text-slate-400">{formatPublishedAt(video.snippet.publishedAt)}</span>
           </div>
-          <div className={cn("whitespace-pre-wrap leading-relaxed text-sm", !showFullDescription && "line-clamp-2")}>
+          <div className={cn("whitespace-pre-wrap leading-relaxed text-xs sm:text-sm text-slate-300", !showFullDescription && "line-clamp-2")}>
             {video.snippet.description}
           </div>
           <button 
-            className="mt-2 font-semibold text-sm"
+            className="mt-2.5 font-bold text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
           >
-            {showFullDescription ? 'Show less' : '...more'}
+            {showFullDescription ? 'সংক্ষিপ্ত করুন (Show less)' : 'আরও বিবরণ দেখুন (Show more)'}
           </button>
         </div>
 
@@ -499,13 +537,13 @@ export function Watch() {
                 key={tab}
                 onClick={() => setRecommendationFilter(tab)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1',
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 flex items-center gap-1',
                   isActive
-                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                    : 'bg-neutral-100 hover:bg-neutral-200 dark:bg-white/10 dark:hover:bg-white/15 text-neutral-700 dark:text-neutral-200'
+                    ? 'bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white shadow-md shadow-pink-500/20 font-bold'
+                    : 'glass-pill text-slate-300 hover:text-white'
                 )}
               >
-                {tab === 'For You' && <Sparkles className="w-3 h-3 fill-current text-amber-500" />}
+                {tab === 'For You' && <Sparkles className="w-3 h-3 fill-current text-pink-400" />}
                 <span>{tab}</span>
               </button>
             );
@@ -517,42 +555,42 @@ export function Watch() {
           if (!vid) return null;
 
           return (
-            <div key={`rec-${vid}-${index}`} className="flex gap-2 group cursor-pointer rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors p-1">
+            <div key={`rec-${vid}-${index}`} className="flex gap-2.5 group cursor-pointer rounded-2xl glass-card transition-all p-2">
               <Link 
                 to={`/watch/${vid}`} 
                 onClick={(e) => handleRelatedVideoClick(e, vid)}
-                className="w-[168px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-neutral-100 dark:bg-neutral-800"
+                className="w-[160px] aspect-video rounded-xl shrink-0 overflow-hidden relative block bg-black/40 border border-white/5"
               >
                 <img
                   src={v.snippet?.thumbnails?.medium?.url || v.snippet?.thumbnails?.default?.url}
                   alt={v.snippet?.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={handleThumbnailError}
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
                 {v.contentDetails?.duration && (
-                  <div className="absolute bottom-1 right-1 bg-black/80 text-white px-1.5 py-0.5 rounded text-[11px] font-medium">
+                  <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-xs text-white px-1.5 py-0.5 rounded text-[10px] font-mono font-medium">
                     {formatDuration(v.contentDetails.duration)}
                   </div>
                 )}
               </Link>
-              <div className="flex flex-col flex-1 min-w-0">
+              <div className="flex flex-col flex-1 min-w-0 justify-center">
                 <Link 
                   to={`/watch/${vid}`}
                   onClick={(e) => handleRelatedVideoClick(e, vid)}
                 >
-                  <h4 className="text-sm font-semibold leading-snug line-clamp-2 text-[#0f0f0f] dark:text-[#f1f1f1]" dangerouslySetInnerHTML={{ __html: v.snippet?.title || '' }}></h4>
+                  <h4 className="text-xs sm:text-sm font-bold leading-snug line-clamp-2 text-white group-hover:text-cyan-300 transition-colors" dangerouslySetInnerHTML={{ __html: v.snippet?.title || '' }}></h4>
                 </Link>
-                <Link to={`/channel/${v.snippet?.channelId}`} className="text-xs text-[#606060] dark:text-[#aaaaaa] mt-1 hover:text-[#0f0f0f] dark:hover:text-[#f1f1f1] transition-colors truncate">
+                <Link to={`/channel/${v.snippet?.channelId}`} className="text-xs text-slate-400 mt-1 hover:text-white transition-colors truncate font-medium">
                   {v.snippet?.channelTitle}
                 </Link>
-                <div className="text-xs text-[#606060] dark:text-[#aaaaaa]">
+                <div className="text-[11px] text-slate-400 mt-0.5">
                   {v.statistics?.viewCount ? `${formatViewCount(v.statistics.viewCount)} views • ` : ''}{formatPublishedAt(v.snippet?.publishedAt)}
                 </div>
                 {v.recommendationReason && (
-                  <div className="flex items-center gap-1 mt-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded w-fit max-w-full">
-                    <Sparkles className="w-2.5 h-2.5 shrink-0" />
+                  <div className="flex items-center gap-1 mt-1 text-[10px] font-medium text-cyan-300 glass-pill px-1.5 py-0.2 rounded w-fit max-w-full">
+                    <Sparkles className="w-2.5 h-2.5 shrink-0 text-pink-400" />
                     <span className="truncate">{v.recommendationReason}</span>
                   </div>
                 )}
@@ -576,6 +614,102 @@ export function Watch() {
         videoTitle={video.snippet.title}
         videoId={id || ''}
       />
+
+      {/* Video Report Modal */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-neutral-900 border border-white/10 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                <Flag className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">ভিডিও রিপোর্ট করুন</h3>
+                <p className="text-xs text-neutral-400">এডমিন প্যানেলে মডারেশনের জন্য অভিযোগ জমা দিন</p>
+              </div>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!id || !video) return;
+                setIsSubmittingReport(true);
+                try {
+                  const finalReason = reportCustomReason ? `${reportReason}: ${reportCustomReason}` : reportReason;
+                  await reportVideo(
+                    id,
+                    video.snippet.title,
+                    finalReason,
+                    user?.uid || 'anonymous',
+                    user?.email || 'viewer@nesttube.local'
+                  );
+                  setReportToast('রিপোর্টটি এডমিন মডারেশন প্যানেলে পাঠানো হয়েছে। ধন্যবাদ!');
+                  setIsReportModalOpen(false);
+                  setReportCustomReason('');
+                  setTimeout(() => setReportToast(''), 3500);
+                } catch (err) {
+                  console.error(err);
+                  alert('রিপোর্ট পাঠানো সম্ভব হয়নি।');
+                } finally {
+                  setIsSubmittingReport(false);
+                }
+              }}
+              className="space-y-3.5"
+            >
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 mb-1.5">অভিযোগের কারণ</label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-black border border-white/10 text-white text-xs focus:outline-none"
+                >
+                  <option value="অনুচিত বা আপত্তিকর কনটেন্ট">অনুচিত বা আপত্তিকর কনটেন্ট</option>
+                  <option value="ভুল তথ্য বা বিভ্রান্তিকর শিরোনাম">ভুল তথ্য বা বিভ্রান্তিকর শিরোনাম</option>
+                  <option value="কপিরাইট লঙ্ঘন">কপিরাইট লঙ্ঘন (Copyright Infringement)</option>
+                  <option value="স্প্যাম বা ক্ষতিকর লিঙ্ক">স্প্যাম বা ক্ষতিকর লিঙ্ক</option>
+                  <option value="অন্যান্য কারণ">অন্যান্য কারণ</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 mb-1.5">বিস্তারিত বিবরণ (ঐচ্ছিক)</label>
+                <textarea
+                  rows={3}
+                  value={reportCustomReason}
+                  onChange={(e) => setReportCustomReason(e.target.value)}
+                  placeholder="সমস্যা সম্পর্কে লিখুন..."
+                  className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs resize-none placeholder-neutral-500 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:bg-white/5 text-xs font-bold cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReport}
+                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-lg shadow-red-600/20 active:scale-95 transition-all cursor-pointer"
+                >
+                  {isSubmittingReport ? 'পাঠানো হচ্ছে...' : 'রিপোর্ট জমা দিন'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Report Toast Notification */}
+      {reportToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <Check className="w-4 h-4" />
+          <span>{reportToast}</span>
+        </div>
+      )}
 
     </div>
   );

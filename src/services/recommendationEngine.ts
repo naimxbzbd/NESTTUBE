@@ -301,20 +301,32 @@ export function getPersonalizedHomeFeed(
     return true;
   });
 
-  // Pagination support
+  // Unlimited continuous infinite pagination
   const pageIndex = pageToken ? parseInt(pageToken, 10) || 0 : 0;
   const start = pageIndex * pageSize;
-  const pagedItems = uniqueRanked.slice(start, start + pageSize);
+  const pagedItems: (RecommendedVideoItem & { feedKey?: string })[] = [];
 
-  const hasNext = start + pageSize < uniqueRanked.length;
-  const nextPageToken = hasNext ? String(pageIndex + 1) : undefined;
+  if (uniqueRanked.length > 0) {
+    for (let i = 0; i < pageSize; i++) {
+      const globalIdx = start + i;
+      const baseItem = uniqueRanked[globalIdx % uniqueRanked.length];
+      const cycle = Math.floor(globalIdx / uniqueRanked.length);
+
+      pagedItems.push({
+        ...baseItem,
+        feedKey: `${baseItem.id}-perso-p${pageIndex}-i${i}-c${cycle}`,
+      });
+    }
+  }
+
+  const nextPageToken = String(pageIndex + 1);
 
   return {
     kind: 'youtube#videoListResponse',
     items: pagedItems,
     nextPageToken,
     pageInfo: {
-      totalResults: rankedItems.length,
+      totalResults: 999999,
       resultsPerPage: pageSize,
     },
     _isPersonalized: true,

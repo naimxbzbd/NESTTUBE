@@ -10,6 +10,7 @@ import { RecommendedPlaylistsSection } from '../components/home/RecommendedPlayl
 import { HomeHeroBanner } from '../components/home/HomeHeroBanner';
 import { HomeLiveTvSection } from '../components/home/HomeLiveTvSection';
 import { HomeBanglaDramasSection } from '../components/home/HomeBanglaDramasSection';
+import { HomeCreatorSection } from '../components/home/HomeCreatorSection';
 import { cn } from '../lib/utils';
 import { fetchCategoryVideos } from '../services/youtube';
 import { useChannelAvatars } from '../hooks/useChannelAvatars';
@@ -17,6 +18,7 @@ import { useYoutubeStore } from '../store/useYoutubeStore';
 import { useUserStore } from '../store/useUserStore';
 import { useAdsterra } from '../context/AdsterraContext';
 import { Tooltip } from '../components/ui/Tooltip';
+import { InfiniteScrollSentinel } from '../components/ui/InfiniteScrollSentinel';
 
 export const PIPRATUBE_CATEGORIES = [
   { id: 'All', label: 'সব (All)' },
@@ -185,15 +187,15 @@ export function Home() {
   const channelAvatarMap = useChannelAvatars(channelIds);
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0f15] text-white transition-colors pb-bottom-nav">
+    <div className="flex flex-col h-full bg-transparent text-white transition-colors pb-bottom-nav">
       {/* Horizontal Category Filter Chips Bar */}
-      <div className="sticky top-0 z-20 bg-[#0b0f15]/95 backdrop-blur-md px-3 sm:px-4 py-2.5 flex items-center border-b border-white/10 transition-colors relative">
+      <div className="sticky top-0 z-20 glass-header px-3 sm:px-4 py-2.5 flex items-center border-b border-white/[0.08] transition-colors relative">
         {/* Left Scroll Chevron with Gradient Mask */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-[#0b0f15] via-[#0b0f15]/90 to-transparent">
+          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-[#06090e] via-[#06090e]/90 to-transparent">
             <button
               onClick={() => scrollCategories('left')}
-              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#181818]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
+              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#0e1524]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
               aria-label="Scroll categories left"
               title="পূর্ববর্তী ক্যাটাগরি"
             >
@@ -220,12 +222,12 @@ export function Home() {
                 tabIndex={0}
                 onClick={(e) => handleCategoryClick(cat, e)}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 cursor-pointer select-none',
+                  'px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 cursor-pointer select-none',
                   cat.isSpecial
-                    ? 'bg-red-600/20 text-red-500 border border-red-500/30 hover:bg-red-600/30 font-bold'
+                    ? 'bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30 font-bold shadow-xs'
                     : isSelected
-                    ? 'bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white font-bold shadow-md shadow-pink-500/20'
-                    : 'bg-[#161d27] text-gray-300 hover:text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white font-bold shadow-lg shadow-pink-500/25 border border-pink-400/40 scale-[1.02]'
+                    : 'glass-pill text-slate-300 hover:text-white hover:border-white/20'
                 )}
               >
                 {cat.label}
@@ -296,6 +298,9 @@ export function Home() {
         {/* Recommended Playlists */}
         {activeCategory === 'All' && <RecommendedPlaylistsSection />}
 
+        {/* Community Creator Uploads from Firestore */}
+        {activeCategory === 'All' && <HomeCreatorSection />}
+
         {/* Curated Bangla Natok Section */}
         {activeCategory === 'All' && <HomeBanglaDramasSection />}
 
@@ -308,14 +313,22 @@ export function Home() {
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {isLoading ? (
-              <div className="flex justify-center items-center h-48">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-3 border-[#ff2d6f] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs text-gray-400">ভিডিও লোড হচ্ছে...</span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 my-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={`init-skel-${i}`} className="flex flex-col gap-3 glass-card p-2.5 rounded-2xl">
+                    <div className="aspect-video w-full rounded-xl skeleton-aurora" />
+                    <div className="flex gap-2.5 px-0.5">
+                      <div className="w-9 h-9 rounded-full skeleton-aurora shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-4/5 rounded skeleton-aurora" />
+                        <div className="h-3 w-1/2 rounded skeleton-aurora" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : error ? (
-              <div className="text-center text-red-400 p-8 bg-[#121824] border border-red-500/20 rounded-2xl max-w-lg mx-auto my-8">
+              <div className="text-center text-red-400 p-8 glass-panel border border-red-500/20 rounded-2xl max-w-lg mx-auto my-8">
                 <h2 className="text-lg font-bold mb-1">ভিডিও লোড করতে সমস্যা হয়েছে</h2>
                 <p className="text-xs text-gray-400 mb-4">
                   অনুগ্রহ করে পুনরায় রিফ্রেশ করুন অথবা ইন্টারনেট সংযোগ যাচাই করুন।
@@ -328,7 +341,7 @@ export function Home() {
                 </button>
               </div>
             ) : videos.length === 0 ? (
-              <div className="text-center py-16 px-4 bg-[#121824] rounded-3xl border border-white/10 max-w-md mx-auto my-8 flex flex-col items-center">
+              <div className="text-center py-16 px-4 glass-panel rounded-3xl border border-white/10 max-w-md mx-auto my-8 flex flex-col items-center">
                 <Filter className="w-10 h-10 text-gray-500 mb-3" />
                 <h3 className="text-base font-bold mb-1">কোনো ভিডিও পাওয়া যায়নি</h3>
                 <p className="text-xs text-gray-400 mb-4">
@@ -350,33 +363,35 @@ export function Home() {
 
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>আপনার জন্য সুপারিশকৃত ভিডিও (Recommended)</span>
+                    <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    <span className="text-aurora-gradient font-extrabold">আপনার জন্য সুপারিশকৃত ভিডিও (Recommended)</span>
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
                   {interleavedItems.map((item: any, index: number) => {
                     if (item.isAd) {
                       return <NativeAdCard key={`ad-${index}-${item.adIndex}`} index={item.adIndex} />;
                     }
 
                     const video = item;
-                    const id = typeof video.id === 'string' ? video.id : video.id.videoId;
+                    const id = typeof video.id === 'string' ? video.id : video.id?.videoId;
                     if (!id) return null;
+
+                    const uniqueKey = item.feedKey || `vid-${id}-${index}`;
 
                     return (
                       <VideoCard
-                        key={`video-${id}-${index}`}
+                        key={uniqueKey}
                         id={id}
-                        title={video.snippet.title}
-                        channelName={video.snippet.channelTitle}
-                        channelId={video.snippet.channelId}
+                        title={video.snippet?.title || ''}
+                        channelName={video.snippet?.channelTitle || ''}
+                        channelId={video.snippet?.channelId}
                         views={video.statistics?.viewCount}
-                        publishedAt={video.snippet.publishedAt}
+                        publishedAt={video.snippet?.publishedAt}
                         duration={video.contentDetails?.duration}
-                        thumbnailUrl={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url}
-                        channelAvatarUrl={video.snippet.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
+                        thumbnailUrl={video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url}
+                        channelAvatarUrl={video.snippet?.channelId ? channelAvatarMap[video.snippet.channelId] : undefined}
                         recommendationReason={video.recommendationReason}
                         recommendationType={video.recommendationType}
                       />
@@ -384,15 +399,15 @@ export function Home() {
                   })}
                 </div>
 
-                {/* Infinite scroll loader / target */}
-                <div ref={loadMoreRef} className="py-8 flex items-center justify-center gap-2">
-                  {isFetchingNextPage && (
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
-                      <div className="w-5 h-5 border-3 border-[#ff2d6f] border-t-transparent rounded-full animate-spin" />
-                      <span>আরও ভিডিও লোড হচ্ছে...</span>
-                    </div>
-                  )}
-                </div>
+                {/* Unlimited Infinite Scroll Sentinel */}
+                <InfiniteScrollSentinel
+                  onLoadMore={() => fetchNextPage()}
+                  hasMore={true}
+                  isLoading={isFetchingNextPage}
+                  loadingText="আরও ভিডিও লোড হচ্ছে..."
+                  skeletonVariant="video-grid"
+                  skeletonCount={4}
+                />
               </>
             )}
           </motion.div>

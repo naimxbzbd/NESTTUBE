@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useUserStore } from '../../store/useUserStore';
 import { useCoinStore } from '../../store/useCoinStore';
 import { useAdsterra } from '../../context/AdsterraContext';
+import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
 import { CreateVideoModal } from './CreateVideoModal';
 import { VoiceSearchModal } from './VoiceSearchModal';
@@ -16,6 +17,7 @@ import { SearchInput } from './SearchInput';
 import { Tooltip } from '../ui/Tooltip';
 import { AuthModal } from '../auth/AuthModal';
 import { AnimatedNestLogo } from './AnimatedNestLogo';
+import { Video, ShieldAlert } from 'lucide-react';
 
 interface HeaderProps {
   onToggleMenu?: () => void;
@@ -36,6 +38,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
   const { unreadNotificationCount, currentUser } = useUserStore();
   const { coins, openRechargeModal } = useCoinStore();
   const { isPremium } = useAdsterra();
+  const { isAdmin, isCreator } = useAuth();
   const location = useLocation();
 
   const handleLogoClick = () => {
@@ -47,7 +50,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
   const unreadCount = unreadNotificationCount();
 
   return (
-    <header className="h-14 flex items-center justify-between px-3 md:px-4 shrink-0 bg-[#0b0f15] text-white border-b border-white/10 transition-colors z-30 relative">
+    <header className="h-14 flex items-center justify-between px-3 md:px-4 shrink-0 glass-header text-white transition-colors z-30 relative">
       {/* Full-width Mobile Search Bar overlay when active */}
       {isMobileSearchActive ? (
         <div className="flex items-center gap-2 w-full animate-in fade-in duration-150">
@@ -135,15 +138,39 @@ export function Header({ onToggleMenu }: HeaderProps) {
               </button>
             </Tooltip>
 
+            {/* YouTube Studio / Creator Dashboard */}
+            <Tooltip content="ক্রিয়েটর স্টুডিও — ভিডিও ম্যানেজার ও অ্যানালিটিক্স" position="bottom">
+              <Link
+                to="/studio"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs bg-pink-500/15 border border-pink-500/30 text-pink-300 hover:bg-pink-500/25 transition-all cursor-pointer"
+              >
+                <Video className="w-3.5 h-3.5 text-pink-400" />
+                <span>স্টুডিও</span>
+              </Link>
+            </Tooltip>
+
+            {/* Admin Panel Link if admin */}
+            {isAdmin && (
+              <Tooltip content="এডমিন কন্ট্রোল সেন্টার — ইউজার রোল ও কনটেন্ট মডারেশন" position="bottom">
+                <Link
+                  to="/admin"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 transition-all cursor-pointer shadow-sm shadow-purple-500/20"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                  <span>এডমিন</span>
+                </Link>
+              </Tooltip>
+            )}
+
             {/* PipraTube Upload Video Button */}
             <Tooltip content="ভিডিও আপলোড করুন" position="bottom">
-              <button
-                onClick={() => setIsCreateOpen(true)}
+              <Link
+                to="/studio"
                 className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full font-bold text-xs bg-upload-gradient text-white shadow-md shadow-pink-500/20 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>আপলোড</span>
-              </button>
+              </Link>
             </Tooltip>
 
             {/* Theme Toggle Button */}

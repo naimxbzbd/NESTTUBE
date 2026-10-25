@@ -72,22 +72,22 @@ export const HomeHeroBanner: React.FC<HomeHeroBannerProps> = ({ video, category 
   const isSaved = isInWatchLater(id);
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/10 group select-none bg-[#121824]">
+    <div className="relative w-full rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/[0.08] group select-none glass-panel">
       {/* Background Thumbnail Image with Cinematic Blur & Gradient */}
-      <div className="absolute inset-0 bg-[#0b0f15] z-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[#06090e] z-0 overflow-hidden">
         {!imgError ? (
           <img
             src={thumbnailUrl}
             alt={title}
-            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700 opacity-25 filter blur-xs"
+            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700 opacity-20 filter blur-xs"
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-pink-950 via-[#0b0f15] to-purple-950" />
+          <div className="w-full h-full bg-gradient-to-r from-pink-950 via-[#06090e] to-purple-950" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f15] via-[#0b0f15]/80 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f15]/95 via-[#0b0f15]/60 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#06090e] via-[#06090e]/85 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#06090e]/95 via-[#06090e]/60 to-transparent z-10" />
       </div>
 
       {/* Hero Content Container */}

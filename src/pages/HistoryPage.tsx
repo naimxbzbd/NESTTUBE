@@ -209,27 +209,29 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 text-neutral-900 dark:text-white transition-colors relative min-h-screen">
+    <div className="p-4 lg:p-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 text-white transition-colors relative min-h-screen bg-transparent pb-bottom-nav">
       
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col gap-6 min-w-0">
         
         {/* Header Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-white/10 pb-5">
+        <div className="glass-panel rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/[0.08]">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-red-600/10 dark:bg-red-500/20 text-red-600 dark:text-red-500 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#ff2d6f] to-[#c026d3] text-white flex items-center justify-center shadow-lg shadow-pink-500/20 shrink-0">
               <History className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Watch History</h1>
-              <p className="text-xs text-neutral-500 dark:text-white/60">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                দেখা ভিডিওর ইতিহাস <span className="text-aurora-gradient">(History)</span>
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">
                 {history.length} {history.length === 1 ? 'video' : 'videos'} saved locally on this device
               </p>
             </div>
           </div>
 
           {/* Type Filter Pills */}
-          <div className="flex items-center gap-1.5 bg-neutral-100 dark:bg-white/5 p-1 rounded-full border border-neutral-200 dark:border-white/10 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 glass-panel p-1 rounded-full border border-white/10 self-start sm:self-auto">
             <button
               onClick={() => setFilterType('all')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
@@ -346,7 +348,7 @@ export function HistoryPage() {
                     return (
                       <div
                         key={`${item.id}-${item.watchedAt}`}
-                        className="flex flex-col sm:flex-row gap-4 p-3 rounded-2xl hover:bg-neutral-100 dark:hover:bg-white/5 border border-transparent hover:border-neutral-200 dark:hover:border-white/10 transition-all group relative"
+                        className="flex flex-col sm:flex-row gap-4 p-3.5 rounded-2xl glass-card transition-all duration-300 group relative"
                       >
                         {/* Video Thumbnail with Progress Bar */}
                         <Link
@@ -488,19 +490,19 @@ export function HistoryPage() {
       <div className="w-full lg:w-80 shrink-0 flex flex-col gap-5 lg:sticky lg:top-20 self-start">
         
         {/* Search Input Box */}
-        <div className="flex items-center bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-2xl px-3.5 py-2.5 text-xs group focus-within:border-blue-500 transition-colors shadow-xs">
-          <Search className="w-4 h-4 text-neutral-400 dark:text-white/40 mr-2.5 shrink-0" />
+        <div className="flex items-center glass-input rounded-2xl px-3.5 py-2.5 text-xs group transition-colors shadow-xs">
+          <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
           <input
             type="text"
             placeholder="Search watch history..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent outline-none flex-1 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-white/40"
+            className="bg-transparent outline-none flex-1 text-white placeholder-slate-500"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="p-1 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-white cursor-pointer"
+              className="p-1 hover:bg-white/10 rounded-full text-slate-400 hover:text-white cursor-pointer"
               title="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -509,12 +511,12 @@ export function HistoryPage() {
         </div>
 
         {/* History Action Panel */}
-        <div className="p-5 rounded-3xl bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex flex-col gap-4 shadow-sm">
+        <div className="p-5 rounded-3xl glass-panel border border-white/10 flex flex-col gap-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-white/50">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               History Controls
             </h3>
-            <span className="text-[11px] text-neutral-400 dark:text-white/40">
+            <span className="text-[11px] text-cyan-400 font-mono font-bold">
               {filteredHistory.length} of {history.length}
             </span>
           </div>

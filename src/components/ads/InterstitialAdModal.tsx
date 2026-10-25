@@ -383,7 +383,7 @@ export const InterstitialAdModal: React.FC = () => {
                   {/* Bullet Perks */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
                     {campaign.perks.map((perk, i) => (
-                      <div key={i} className="flex items-center gap-1.5 text-xs text-neutral-300">
+                      <div key={`ad-perk-${campaign.id}-${i}`} className="flex items-center gap-1.5 text-xs text-neutral-300">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         <span className="truncate">{perk}</span>
                       </div>

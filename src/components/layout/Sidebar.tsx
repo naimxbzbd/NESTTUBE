@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Home, Tv, Film, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Coins, Code2, Mail, Sparkles, Handshake, X, ListVideo, Layers } from 'lucide-react';
+import { Home, Tv, Film, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Coins, Code2, Mail, Sparkles, Handshake, X, ListVideo, Layers, Video, ShieldAlert } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useUserStore } from '../../store/useUserStore';
 import { useCoinStore } from '../../store/useCoinStore';
+import { useAuth } from '../../context/AuthContext';
 import { ContactDeveloperModal } from './ContactDeveloperModal';
 import { SponsorshipModal } from './SponsorshipModal';
 import { AnimatedNestLogo } from './AnimatedNestLogo';
@@ -17,6 +18,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation();
   const { subscribedChannels, playlists } = useUserStore();
   const { coins, openRechargeModal } = useCoinStore();
+  const { isAdmin, isCreator } = useAuth();
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isSponsorshipOpen, setIsSponsorshipOpen] = useState(false);
 
@@ -29,7 +31,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar py-3 text-white bg-[#0b0f15]">
+    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar py-3 text-white glass-sidebar">
       {/* Mobile Header in Drawer */}
       {isMobileOpen && (
         <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-white/10 md:hidden">
@@ -124,6 +126,48 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           <Layers className="w-5 h-5 text-blue-400" />
           <span>সাবস্ক্রিপশন</span>
         </Link>
+
+        {/* NestTube Studio (Creator Dashboard) */}
+        <Link
+          to="/studio"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/studio')
+              ? "bg-pink-500/15 border border-pink-500/30 text-pink-400 font-bold"
+              : "text-gray-300 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <Video className="w-5 h-5 text-pink-400 group-hover:scale-110 transition-transform" />
+            <span>ক্রিয়েটর স্টুডিও</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 uppercase">
+            STUDIO
+          </span>
+        </Link>
+
+        {/* Admin Panel (if admin) */}
+        {isAdmin && (
+          <Link
+            to="/admin"
+            onClick={handleLinkClick}
+            className={cn(
+              "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+              isActive('/admin')
+                ? "bg-purple-500/15 border border-purple-500/30 text-purple-400 font-bold"
+                : "text-purple-300 hover:bg-white/5 hover:text-white"
+            )}
+          >
+            <div className="flex items-center gap-4">
+              <ShieldAlert className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span>এডমিন প্যানেল</span>
+            </div>
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/30 text-purple-300 border border-purple-500/40 uppercase">
+              ADMIN
+            </span>
+          </Link>
+        )}
 
         <div className="h-[1px] bg-white/10 my-3 mx-2" />
 
@@ -274,18 +318,18 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="w-[240px] h-full bg-[#0b0f15] border-r border-white/10 hidden md:block transition-colors shrink-0">
+      <aside className="w-[240px] h-full glass-sidebar hidden md:block transition-colors shrink-0">
         {sidebarContent}
       </aside>
 
       {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md md:hidden animate-in fade-in duration-200"
           onClick={onCloseMobile}
         >
           <div 
-            className="w-[280px] h-full bg-[#0b0f15] shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col"
+            className="w-[280px] h-full glass-sidebar shadow-2xl animate-in slide-in-from-left duration-200 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {sidebarContent}

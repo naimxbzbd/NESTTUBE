@@ -16,10 +16,19 @@ export function Layout() {
   const isShorts = location.pathname.startsWith('/shorts');
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0f15] text-white overflow-hidden font-sans relative pb-16 md:pb-0 transition-colors">
+    <div className="flex flex-col h-screen bg-[#06090e] text-white overflow-hidden font-sans relative pb-16 md:pb-0 transition-colors">
+      {/* Dynamic Ambient Aurora Glow Meshes (Deep Obsidian Background) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-[620px] h-[620px] bg-cyan-500/[0.09] rounded-full blur-[140px] animate-aurora-1" />
+        <div className="absolute top-1/3 -right-28 w-[580px] h-[580px] bg-pink-500/[0.08] rounded-full blur-[150px] animate-aurora-2" />
+        <div className="absolute -bottom-36 left-1/4 w-[720px] h-[520px] bg-purple-600/[0.09] rounded-full blur-[160px]" />
+        {/* Subtle grid mesh overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+      </div>
+
       <OfflineBanner />
       <Header onToggleMenu={() => setIsMobileMenuOpen((prev) => !prev)} />
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         <Sidebar 
           isMobileOpen={isMobileMenuOpen} 
           onCloseMobile={() => setIsMobileMenuOpen(false)} 
