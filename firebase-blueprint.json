@@ -85,6 +85,28 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["totalVideos", "totalUsers", "totalViews"]
+    },
+    "network_streams": {
+      "title": "Network Stream Item",
+      "description": "Custom user-added direct streams and M3U playlists synced across devices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "type": { "type": "string", "enum": ["single", "m3u"] },
+        "ownerUid": { "type": "string" },
+        "channelCount": { "type": "number" },
+        "lastPlayedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "url", "type", "ownerUid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/network_streams/{streamId}": {
+      "schema": "network_streams",
+      "description": "Custom network streams saved by authenticated users"
     }
   }
 }

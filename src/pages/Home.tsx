@@ -20,9 +20,12 @@ import { useAdsterra } from '../context/AdsterraContext';
 import { Tooltip } from '../components/ui/Tooltip';
 import { InfiniteScrollSentinel } from '../components/ui/InfiniteScrollSentinel';
 
-export const PIPRATUBE_CATEGORIES = [
+export const NESTTUBE_CATEGORIES = [
   { id: 'All', label: 'সব (All)' },
   { id: 'Live TV', label: '🔴 লাইভ টিভি', isSpecial: true },
+  { id: 'Network Stream', label: '🌐 নেটওয়ার্ক স্ট্রিম', isSpecial: true },
+  { id: 'Movies', label: '🍿 সিনেমা (Movies)', isSpecial: true },
+  { id: 'Series', label: '📺 ওয়েব সিরিজ (Series)', isSpecial: true },
   { id: 'Bangla Natok', label: '🎭 বাংলা নাটক' },
   { id: 'Bangla Cinema', label: '🎬 বাংলা সিনেমা' },
   { id: 'Comedy', label: '😂 কমেডি' },
@@ -35,6 +38,7 @@ export const PIPRATUBE_CATEGORIES = [
   { id: 'Cooking', label: '🍳 রেসিপি' },
   { id: 'Tech', label: '📱 প্রযুক্তি' },
 ];
+// NESTTUBE category definitions
 
 export function Home() {
   const navigate = useNavigate();
@@ -83,6 +87,18 @@ export function Home() {
       navigate('/live-tv');
       return;
     }
+    if (cat.id === 'Network Stream') {
+      navigate('/network-stream');
+      return;
+    }
+    if (cat.id === 'Movies') {
+      navigate('/movies');
+      return;
+    }
+    if (cat.id === 'Series') {
+      navigate('/series');
+      return;
+    }
     if (cat.id === 'Shorts') {
       navigate('/shorts');
       return;
@@ -126,7 +142,7 @@ export function Home() {
   } = useInfiniteQuery({
     queryKey: ['videos', activeCategory, refreshSeed],
     queryFn: ({ pageParam = '' }) => {
-      // Query videos tailored for PipraTube
+      // Query videos tailored for NESTTUBE
       const queryTerm = activeCategory === 'All' ? 'Bangla Natok Cinema Entertainment' : activeCategory;
       return fetchCategoryVideos(queryTerm, 24, pageParam, refreshSeed);
     },
@@ -187,15 +203,15 @@ export function Home() {
   const channelAvatarMap = useChannelAvatars(channelIds);
 
   return (
-    <div className="flex flex-col h-full bg-transparent text-white transition-colors pb-bottom-nav">
+    <div className="flex flex-col h-full bg-transparent text-[var(--color-text)] transition-colors pb-bottom-nav">
       {/* Horizontal Category Filter Chips Bar */}
-      <div className="sticky top-0 z-20 glass-header px-3 sm:px-4 py-2.5 flex items-center border-b border-white/[0.08] transition-colors relative">
+      <div className="sticky top-0 z-20 glass-header px-3 sm:px-4 py-2.5 flex items-center border-b border-black/5 dark:border-white/[0.08] transition-colors relative">
         {/* Left Scroll Chevron with Gradient Mask */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-[#06090e] via-[#06090e]/90 to-transparent">
+          <div className="absolute left-0 top-0 bottom-0 z-10 hidden sm:flex items-center pl-2 pr-6 bg-gradient-to-r from-[var(--color-page)] via-[var(--color-page)]/90 to-transparent">
             <button
               onClick={() => scrollCategories('left')}
-              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#0e1524]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
+              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/15 text-[var(--color-text)] bg-white/90 dark:bg-[#0e1524]/90 shadow-md border border-black/10 dark:border-white/10 transition-all cursor-pointer hover:scale-105"
               aria-label="Scroll categories left"
               title="পূর্ববর্তী ক্যাটাগরি"
             >
@@ -211,7 +227,7 @@ export function Home() {
           aria-label="Video category filter chips"
           className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full py-1 px-1"
         >
-          {PIPRATUBE_CATEGORIES.map((cat) => {
+          {NESTTUBE_CATEGORIES.map((cat) => {
             const isSelected = activeCategory === cat.id;
 
             return (
@@ -224,10 +240,10 @@ export function Home() {
                 className={cn(
                   'px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 cursor-pointer select-none',
                   cat.isSpecial
-                    ? 'bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30 font-bold shadow-xs'
+                    ? 'bg-red-600/20 text-red-500 border border-red-500/30 hover:bg-red-600/30 font-bold shadow-xs'
                     : isSelected
                     ? 'bg-gradient-to-r from-[#ff2d6f] to-[#c026d3] text-white font-bold shadow-lg shadow-pink-500/25 border border-pink-400/40 scale-[1.02]'
-                    : 'glass-pill text-slate-300 hover:text-white hover:border-white/20'
+                    : 'glass-pill hover:border-pink-500/30'
                 )}
               >
                 {cat.label}
@@ -238,10 +254,10 @@ export function Home() {
 
         {/* Right Scroll Chevron with Gradient Mask */}
         {canScrollRight && (
-          <div className="absolute right-14 sm:right-28 top-0 bottom-0 z-10 hidden sm:flex items-center pr-2 pl-6 bg-gradient-to-l from-[#0b0f15] via-[#0b0f15]/90 to-transparent">
+          <div className="absolute right-14 sm:right-28 top-0 bottom-0 z-10 hidden sm:flex items-center pr-2 pl-6 bg-gradient-to-l from-[var(--color-page)] via-[var(--color-page)]/90 to-transparent">
             <button
               onClick={() => scrollCategories('right')}
-              className="p-1.5 rounded-full hover:bg-white/15 text-white bg-[#181818]/90 shadow-md border border-white/10 transition-all cursor-pointer hover:scale-105"
+              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/15 text-[var(--color-text)] bg-white/90 dark:bg-[#181818]/90 shadow-md border border-black/10 dark:border-white/10 transition-all cursor-pointer hover:scale-105"
               aria-label="Scroll categories right"
               title="পরবর্তী ক্যাটাগরি"
             >

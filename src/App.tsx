@@ -34,6 +34,12 @@ import { Trending } from './pages/Trending';
 import { Library } from './pages/Library';
 import { Studio } from './pages/Studio';
 import { AdminPanel } from './pages/AdminPanel';
+import { Referrals } from './pages/Referrals';
+import { SpeedTest } from './pages/SpeedTest';
+import { Movies } from './pages/Movies';
+import { Series } from './pages/Series';
+import { NetworkStream } from './pages/NetworkStream';
+import { NetworkStatusIndicator } from './components/ui/NetworkStatusIndicator';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +63,9 @@ export default function App() {
                     <Route index element={<Home />} />
                     <Route path="live-tv" element={<LiveTv />} />
                     <Route path="live" element={<LiveTv />} />
+                    <Route path="movies" element={<Movies />} />
+                    <Route path="series" element={<Series />} />
+                    <Route path="network-stream" element={<NetworkStream />} />
                     <Route path="watch/:id" element={<Watch />} />
                     <Route path="search" element={<Search />} />
                     <Route path="channel/:id" element={<Channel />} />
@@ -68,9 +77,14 @@ export default function App() {
                     <Route path="library" element={<Library />} />
                     <Route path="studio" element={<Studio />} />
                     <Route path="admin" element={<AdminPanel />} />
+                    <Route path="referrals" element={<Referrals />} />
+                    <Route path="speed-test" element={<SpeedTest />} />
                   </Route>
                 </Routes>
-              {/* PipraCoins Wallet & Virtual Gifts Modals */}
+              {/* Network Connectivity Toast Alert */}
+              <NetworkStatusIndicator />
+
+              {/* NestCoins Wallet & Virtual Gifts Modals */}
               <CoinModal />
               <GiftModal />
               <CelebrationOverlay />

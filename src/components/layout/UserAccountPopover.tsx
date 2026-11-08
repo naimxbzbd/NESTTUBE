@@ -18,6 +18,8 @@ import {
   Video,
   Sliders,
   Tv,
+  Gift,
+  Activity,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUserStore } from '../../store/useUserStore';
@@ -140,6 +142,40 @@ export function UserAccountPopover({
               </div>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-pink-400" />
+          </Link>
+
+          <Link
+            to="/referrals"
+            onClick={onClose}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-white transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Gift className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-xs block text-emerald-300">রেফার অ্যান্ড আর্ন (৩০ দিন ফ্রি)</span>
+                <span className="text-[10px] text-neutral-400 block">বন্ধু রেফার করে আনলিমিটেড PRO পান</span>
+              </div>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-emerald-400" />
+          </Link>
+
+          <Link
+            to="/speed-test"
+            onClick={onClose}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-white transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                <Activity className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-xs block text-cyan-300">4K ইন্টারনেট স্পিড টেস্ট</span>
+                <span className="text-[10px] text-neutral-400 block">স্ট্রিমিং ব্যান্ডউইথ পরিমাপ করুন</span>
+              </div>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-cyan-400" />
           </Link>
 
           {isAdmin && (

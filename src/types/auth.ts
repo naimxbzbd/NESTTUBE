@@ -11,6 +11,11 @@ export interface AppUserProfile {
   bio?: string;
   bannerUrl?: string;
   isPremium?: boolean;
+  premiumExpiresAt?: string;
+  referralCode?: string;
+  referredBy?: string;
+  referralsCount?: number;
+  referralBonusDays?: number;
   subscribersCount?: number;
   totalViews?: number;
   createdAt: string;

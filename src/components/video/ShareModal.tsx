@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Copy, Check, Share2, Code, Send, MessageCircle } from 'lucide-react';
 
 interface ShareModalProps {
@@ -51,9 +52,10 @@ export function ShareModal({ isOpen, onClose, videoTitle, videoId }: ShareModalP
     },
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-neutral-200 dark:border-white/10 transition-colors">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
+      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-2xl w-full max-w-md my-auto shadow-2xl overflow-hidden border border-neutral-200 dark:border-white/10 transition-colors relative" onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-white/10">
@@ -159,4 +161,6 @@ export function ShareModal({ isOpen, onClose, videoTitle, videoId }: ShareModalP
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

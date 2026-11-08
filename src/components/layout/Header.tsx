@@ -17,7 +17,7 @@ import { SearchInput } from './SearchInput';
 import { Tooltip } from '../ui/Tooltip';
 import { AuthModal } from '../auth/AuthModal';
 import { AnimatedNestLogo } from './AnimatedNestLogo';
-import { Video, ShieldAlert } from 'lucide-react';
+import { Video, ShieldAlert, Activity, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   onToggleMenu?: () => void;
@@ -50,7 +50,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
   const unreadCount = unreadNotificationCount();
 
   return (
-    <header className="h-14 flex items-center justify-between px-3 md:px-4 shrink-0 glass-header text-white transition-colors z-30 relative">
+    <header className="h-14 flex items-center justify-between px-3 md:px-4 shrink-0 glass-header text-[var(--color-text)] transition-colors duration-200 z-30 relative">
       {/* Full-width Mobile Search Bar overlay when active */}
       {isMobileSearchActive ? (
         <div className="flex items-center gap-2 w-full animate-in fade-in duration-150">
@@ -81,7 +81,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
             <Tooltip content="মেইন মেনু" position="bottom">
               <button 
                 onClick={onToggleMenu}
-                className="p-2 hover:bg-white/10 rounded-full text-white transition-colors cursor-pointer"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full text-current transition-colors cursor-pointer"
                 aria-label="Open Menu"
               >
                 <Menu className="w-6 h-6" />
@@ -126,8 +126,8 @@ export function Header({ onToggleMenu }: HeaderProps) {
               <span>লাইভ টিভি</span>
             </Link>
 
-            {/* PipraCoins Wallet Pill */}
-            <Tooltip content="পিপড়াটিউব কয়েন ওয়ালেট — রিচার্জ করুন ও উপহার পাঠান" position="bottom">
+            {/* NESTTUBE Coins Wallet Pill */}
+            <Tooltip content="NESTTUBE কয়েন ওয়ালেট — রিচার্জ করুন ও উপহার পাঠান" position="bottom">
               <button
                 onClick={openRechargeModal}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-all cursor-pointer group"
@@ -136,6 +136,28 @@ export function Header({ onToggleMenu }: HeaderProps) {
                 <span className="font-mono font-bold">{coins}</span>
                 <span className="hidden sm:inline text-[11px] text-amber-200/80">কয়েন</span>
               </button>
+            </Tooltip>
+
+            {/* Refer a Friend Link */}
+            <Tooltip content="রেফার অ্যান্ড আর্ন — ৩০ দিনের ফ্রি প্রিমিয়াম পান" position="bottom">
+              <Link
+                to="/referrals"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>রেফারেল (৩০ দিন ফ্রি)</span>
+              </Link>
+            </Tooltip>
+
+            {/* Internet Speed Test Shortcut */}
+            <Tooltip content="ইন্টারনেট স্পিড টেস্ট — 4K স্ট্রিমিং স্পিড মাপুন" position="bottom">
+              <Link
+                to="/speed-test"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 transition-all cursor-pointer"
+              >
+                <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                <span>স্পিড টেস্ট</span>
+              </Link>
             </Tooltip>
 
             {/* YouTube Studio / Creator Dashboard */}
@@ -162,7 +184,7 @@ export function Header({ onToggleMenu }: HeaderProps) {
               </Tooltip>
             )}
 
-            {/* PipraTube Upload Video Button */}
+            {/* NESTTUBE Upload Video Button */}
             <Tooltip content="ভিডিও আপলোড করুন" position="bottom">
               <Link
                 to="/studio"
@@ -177,13 +199,13 @@ export function Header({ onToggleMenu }: HeaderProps) {
             <Tooltip content={theme === 'dark' ? 'লাইট মোড করুন' : 'ডার্ক মোড করুন'} position="bottom">
               <button
                 onClick={toggleTheme}
-                className="p-2 hover:bg-white/10 text-white rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 text-current rounded-full transition-colors flex items-center justify-center cursor-pointer"
                 aria-label="Toggle Theme"
               >
                 {theme === 'dark' ? (
                   <Sun className="w-5 h-5 text-amber-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-gray-300" />
+                  <Moon className="w-5 h-5 text-indigo-600" />
                 )}
               </button>
             </Tooltip>
@@ -192,11 +214,11 @@ export function Header({ onToggleMenu }: HeaderProps) {
             <Tooltip content="নোটিফিকেশন" position="bottom">
               <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 hover:bg-white/10 text-white rounded-full relative transition-colors cursor-pointer"
+                className="p-2 hover:bg-black/5 dark:hover:bg-white/10 text-current rounded-full relative transition-colors cursor-pointer"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 rounded-full border-2 border-[#0b0f15] text-white text-[9px] flex items-center justify-center font-bold">
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 rounded-full border-2 border-[var(--color-page)] text-white text-[9px] flex items-center justify-center font-bold">
                     {unreadCount}
                   </span>
                 )}

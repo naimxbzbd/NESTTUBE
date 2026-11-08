@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Coins, Check, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useCoinStore, COIN_PACKAGES, CoinPackage } from '../../store/useCoinStore';
 
@@ -36,10 +37,11 @@ export const CoinModal: React.FC = () => {
     }, 1200);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
-        {/* Header with PipraTube Brand Gradient */}
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={closeRechargeModal} />
+      <div className="relative w-full max-w-lg my-auto glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Header with NESTTUBE Brand Gradient */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff9a1f] to-[#ff2d6f] flex items-center justify-center shadow-lg shadow-pink-500/20">
@@ -47,9 +49,9 @@ export const CoinModal: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                পিপড়াটিউব কয়েন ওয়ালেট
+                NESTTUBE কয়েন ওয়ালেট
                 <span className="text-xs px-2 py-0.5 rounded-full bg-pink-500/20 text-[#ff2d6f] border border-pink-500/30">
-                  PipraCoins
+                  NestCoins
                 </span>
               </h2>
               <p className="text-xs text-gray-400">আপনার বর্তমান ব্যালান্স: <span className="text-amber-400 font-bold font-mono">{coins} কয়েন</span></p>
@@ -226,4 +228,6 @@ export const CoinModal: React.FC = () => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

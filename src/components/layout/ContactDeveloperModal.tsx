@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Mail, Code2, Send, Check, Copy, Phone, ExternalLink, Sparkles, UserCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -46,10 +47,11 @@ export function ContactDeveloperModal({ isOpen, onClose }: ContactDeveloperModal
     }, 1200);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
       <div 
-        className="bg-white dark:bg-[#181818] border border-neutral-200 dark:border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl text-neutral-900 dark:text-white flex flex-col animate-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-[#181818] border border-neutral-200 dark:border-white/10 rounded-2xl w-full max-w-lg my-auto overflow-hidden shadow-2xl text-neutral-900 dark:text-white flex flex-col animate-in zoom-in-95 duration-200 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -255,4 +257,6 @@ export function ContactDeveloperModal({ isOpen, onClose }: ContactDeveloperModal
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

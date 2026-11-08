@@ -137,13 +137,13 @@ export function VideoCard({
         </Link>
         <div className="flex flex-col flex-1 min-w-0">
           <Link to={`/watch/${id}`} onClick={handleVideoClick}>
-            <h3 className="text-sm sm:text-base font-bold leading-snug line-clamp-2 text-white group-hover:text-cyan-300 transition-colors" dangerouslySetInnerHTML={{ __html: title }}></h3>
+            <h3 className="text-sm sm:text-base font-bold leading-snug line-clamp-2 text-[var(--color-text)] group-hover:text-pink-500 transition-colors" dangerouslySetInnerHTML={{ __html: title }}></h3>
           </Link>
-          <Link to={channelLink} className="text-xs sm:text-sm text-slate-400 mt-1 flex items-center gap-1 hover:text-white transition-colors truncate">
+          <Link to={channelLink} className="text-xs sm:text-sm text-neutral-500 dark:text-slate-400 mt-1 flex items-center gap-1 hover:text-black dark:hover:text-white transition-colors truncate">
             <span className="truncate">{channelName}</span>
-            {verified && <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+            {verified && <CheckCircle2 className="w-3.5 h-3.5 text-cyan-500 shrink-0" />}
           </Link>
-          <div className="text-xs text-slate-400 mt-0.5 font-medium">
+          <div className="text-xs text-neutral-500 dark:text-slate-400 mt-0.5 font-medium">
             {views ? formatViewCount(views) : '0'} views • {publishedAt ? formatPublishedAt(publishedAt) : ''}
           </div>
           {recommendationReason && (

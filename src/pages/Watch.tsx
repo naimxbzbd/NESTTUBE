@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle, Gift, Flag } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Download, Scissors, ListPlus, CheckCircle2, Bookmark, Send, Sparkles, Maximize2, Check, Play, Pause, PictureInPicture2, RotateCcw, ExternalLink, RefreshCw, AlertCircle, Gift, Flag, Activity } from 'lucide-react';
 import { cn, handleThumbnailError } from '../lib/utils';
 import { getVideoDetails, getComments, getVideos, searchVideos, getChannelDetails, getPlayerRecommendations } from '../services/youtube';
 import { formatPublishedAt, formatViewCount, formatDuration } from '../lib/formatters';
@@ -201,7 +201,7 @@ export function Watch() {
   const videoCustomComments = (id && customComments[id]) || [];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 bg-transparent text-white min-h-full transition-colors relative pb-bottom-nav">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 bg-transparent text-[var(--color-text)] min-h-full transition-colors relative pb-bottom-nav">
       
       {/* Toast popups */}
       {downloadToast && (
@@ -280,6 +280,16 @@ export function Watch() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/speed-test"
+              target="_blank"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-cyan-500/10 text-cyan-400 font-medium transition-colors"
+              title="চেক করুন আপনার ইন্টারনেট স্পিড 4K বাফার-মুক্ত চালানোর জন্য প্রস্তুত কি না"
+            >
+              <Activity className="w-3 h-3" />
+              <span>স্পিড টেস্ট</span>
+            </Link>
+
             <a
               href={`https://www.youtube.com/watch?v=${id}`}
               target="_blank"
@@ -361,7 +371,7 @@ export function Watch() {
               </button>
             </div>
 
-            {/* PipraTube Gift Coins Action */}
+            {/* NESTTUBE Gift Coins Action */}
             <button
               onClick={() => useCoinStore.getState().openGiftModal({
                 id: id || '',
@@ -416,19 +426,19 @@ export function Watch() {
 
         {/* Description Box */}
         <div 
-          className="glass-panel p-4 rounded-2xl text-sm text-slate-200 cursor-pointer mt-2 transition-all hover:border-white/20"
+          className="glass-panel p-4 rounded-2xl text-sm text-slate-800 dark:text-slate-200 cursor-pointer mt-2 transition-all hover:border-black/20 dark:hover:border-white/20"
           onClick={() => setShowFullDescription(!showFullDescription)}
         >
-          <div className="font-bold text-sm mb-1.5 text-white flex items-center gap-2">
+          <div className="font-bold text-sm mb-1.5 text-slate-900 dark:text-white flex items-center gap-2">
             <span>{formatViewCount(video.statistics.viewCount)} views</span>
             <span>•</span>
-            <span className="text-slate-400">{formatPublishedAt(video.snippet.publishedAt)}</span>
+            <span className="text-slate-600 dark:text-slate-400">{formatPublishedAt(video.snippet.publishedAt)}</span>
           </div>
-          <div className={cn("whitespace-pre-wrap leading-relaxed text-xs sm:text-sm text-slate-300", !showFullDescription && "line-clamp-2")}>
+          <div className={cn("whitespace-pre-wrap leading-relaxed text-xs sm:text-sm text-slate-700 dark:text-slate-300", !showFullDescription && "line-clamp-2")}>
             {video.snippet.description}
           </div>
           <button 
-            className="mt-2.5 font-bold text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+            className="mt-2.5 font-bold text-xs text-blue-600 dark:text-cyan-400 hover:underline transition-colors"
           >
             {showFullDescription ? 'সংক্ষিপ্ত করুন (Show less)' : 'আরও বিবরণ দেখুন (Show more)'}
           </button>

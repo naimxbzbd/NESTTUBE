@@ -52,10 +52,11 @@ interface CoinState {
   clearCelebration: () => void;
 }
 
-const STORAGE_KEY = 'pipratube_coin_balance';
+const STORAGE_KEY = 'nesttube_coin_balance';
+const LEGACY_STORAGE_KEY = 'pipratube_coin_balance';
 
 export const useCoinStore = create<CoinState>((set, get) => {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
   const initialCoins = saved !== null ? parseInt(saved, 10) : 150; // Welcome 150 coins bonus!
 
   return {

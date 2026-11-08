@@ -3,95 +3,166 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  --color-page: #f1f5f9; /* Eye-comfort Soft Slate Warm base */
+  --color-surface: #ffffff;
+  --color-surface-hover: #e2e8f0;
+  --color-card: #ffffff;
+  --color-text: #0f172a; /* Slate 900 - ultra crisp reading */
+  --color-text-muted: #334155; /* Slate 700 - high contrast metadata */
+  --color-text-faint: #64748b; /* Slate 500 */
+  --color-border: rgba(15, 23, 42, 0.1);
+  --glass-header-bg: rgba(248, 250, 252, 0.92);
+  --glass-sidebar-bg: rgba(248, 250, 252, 0.95);
+  --glass-card-bg: #ffffff;
+  --glass-pill-bg: #e2e8f0;
+  --glass-pill-hover-bg: #cbd5e1;
+  --glass-pill-text: #0f172a;
+  --glass-input-bg: #ffffff;
+  --brand-primary: #ff2d6f;
+  --brand-secondary: #c026d3;
+  --brand-cyan: #0284c7;
+  --brand-violet: #7c3aed;
+  --brand-orange: #ea580c;
+  --font-sans: 'Hind Siliguri', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html.dark {
   --color-page: #06090e;
   --color-surface: #0c121d;
   --color-surface-hover: #151e2e;
   --color-card: #0e1524;
-  --brand-primary: #ff2d6f;
-  --brand-secondary: #c026d3;
+  --color-text: #f8fafc;
+  --color-text-muted: #cbd5e1;
+  --color-text-faint: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --glass-header-bg: rgba(6, 9, 14, 0.85);
+  --glass-sidebar-bg: rgba(7, 10, 16, 0.88);
+  --glass-card-bg: rgba(14, 21, 34, 0.65);
+  --glass-pill-bg: rgba(255, 255, 255, 0.06);
+  --glass-pill-hover-bg: rgba(255, 255, 255, 0.12);
+  --glass-pill-text: #e2e8f0;
+  --glass-input-bg: rgba(11, 16, 26, 0.7);
   --brand-cyan: #06b6d4;
   --brand-violet: #8b5cf6;
   --brand-orange: #ff9a1f;
-  --font-sans: 'Hind Siliguri', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 @layer base {
   html, body {
     background-color: var(--color-page);
-    color: #f8fafc;
+    color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
   }
 }
 
-/* Deep Obsidian Glass & Aurora Highlights */
+/* Deep Obsidian Glass & Aurora Highlights with Soft Slate Warm Adaptivity */
 .bg-obsidian-root {
-  background-color: #06090e;
+  background-color: var(--color-page);
 }
 
 .glass-panel {
-  background: rgba(12, 18, 29, 0.68);
+  background: var(--glass-card-bg);
+  color: var(--color-text);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+html.dark .glass-panel {
   box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
 }
 
 .glass-header {
-  background: rgba(6, 9, 14, 0.82);
+  background: var(--glass-header-bg);
+  color: var(--color-text);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.06);
+}
+html.dark .glass-header {
   box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
 }
 
 .glass-sidebar {
-  background: rgba(7, 10, 16, 0.85);
+  background: var(--glass-sidebar-bg);
+  color: var(--color-text);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid var(--color-border);
 }
 
 .glass-card {
-  background: rgba(14, 21, 34, 0.55);
+  background: var(--glass-card-bg);
+  color: var(--color-text);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.05);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
+  border-color: rgba(255, 45, 111, 0.4);
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08), 0 0 16px -2px rgba(255, 45, 111, 0.12);
+  transform: translateY(-2px);
+}
+html.dark .glass-card:hover {
   background: rgba(18, 27, 44, 0.72);
   border-color: rgba(255, 255, 255, 0.16);
   box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px -4px rgba(6, 182, 212, 0.18), 0 0 24px -6px rgba(255, 45, 111, 0.16);
-  transform: translateY(-2px);
 }
 
 .glass-pill {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-pill-bg);
+  color: var(--glass-pill-text);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--color-border);
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .glass-pill:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--glass-pill-hover-bg);
+  border-color: rgba(255, 45, 111, 0.4);
+  color: #0f172a;
+}
+html.dark .glass-pill:hover {
+  color: #ffffff;
 }
 
 .glass-input {
-  background: rgba(11, 16, 26, 0.65);
+  background: var(--glass-input-bg);
+  color: var(--color-text);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
 }
 
 .glass-input:focus {
   border-color: rgba(255, 45, 111, 0.6);
   box-shadow: 0 0 16px -2px rgba(255, 45, 111, 0.25);
+}
+
+/* Eye-Comfort Global Contrast Fixes for Light Mode */
+html:not(.dark) {
+  /* Ensure any container using text-white or pale gray maps to crisp readable slate */
+  h1:not([class*="bg-gradient-"]), 
+  h2:not([class*="bg-gradient-"]), 
+  h3:not([class*="bg-gradient-"]), 
+  h4:not([class*="bg-gradient-"]) {
+    color: #0f172a;
+  }
+}
+
+html:not(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.2);
+}
+html:not(.dark) .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.35);
 }
 
 /* Glowing Aurora Skeleton Loader Keyframes */
@@ -145,7 +216,7 @@
   animation: aurora-mesh-float-2 22s ease-in-out infinite;
 }
 
-/* PipraTube Signature Gradients and RGB Animations */
+/* NESTTUBE Signature Gradients and RGB Animations */
 .bg-brand-gradient {
   background-image: linear-gradient(90deg, #ff2d6f, #c026d3);
 }

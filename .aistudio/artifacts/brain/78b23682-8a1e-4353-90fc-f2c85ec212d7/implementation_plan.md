@@ -1,89 +1,100 @@
-# Implementation Plan: YouTube-Style Authentication, Creator Studio Dashboard, and Admin Panel
+# NestTube Network Stream Architecture & Implementation Plan
 
-Build an enterprise-grade YouTube-style ecosystem for the application featuring role-based authentication, a Creator Studio Dashboard (uploading, video manager, channel analytics, channel branding), and an Admin Control Panel (user management, content moderation, platform statistics) powered by Firebase Authentication and Cloud Firestore, styled in deep obsidian glassmorphism.
+A dedicated, high-performance Network Stream hub (`/network-stream`) allowing users to paste any custom live stream URL or full remote M3U playlist, featuring automatic stream sniffing, Firestore cross-device account synchronization, IndexedDB guest fallback, and seamless HLS playback.
 
----
-
-## 1. Architecture & Role Hierarchy
-
-Three distinct privilege tiers will be supported:
-
-| Role | Permissions & Access |
-|---|---|
-| **Viewer (Default User)** | Watch videos/Live TV, like, comment, save to playlists/watch later, customize viewer profile. |
-| **Creator (Channel Owner)** | All Viewer permissions + YouTube Studio dashboard, video uploader, video editing/deletion, channel analytics, branding. |
-| **Platform Admin** | All Creator permissions + Admin Control Panel, user role promotion/ban, content takedown & moderation, global platform metrics. |
-
-*Initial Platform Admin:* Bootstrapped automatically to the user's account (`h4k3rxbd@gmail.com`).
+> [!IMPORTANT]
+> **User Review & Confirmed Decisions**
+> 
+> - **Stream Compatibility**: Support both single direct stream URLs (`.m3u8`, `.mp4`, direct HLS feeds) and full multi-channel M3U/M3U8 playlist files.
+> - **Data Persistence & Sync**: Store custom streams in the user's account profile (Firestore `users/{userId}/network_streams`) for instant cross-device access, paired with local IndexedDB storage for offline/guest viewing.
+> - **Interface & Navigation**: A dedicated page (`/network-stream`) integrated into the primary sidebar and mobile navigation drawer, equipped with stream inspection, quick-test presets, and a saved streams manager.
+> - **Performance**: Lightweight stream sniffing, 20-at-a-time batch channel rendering if a multi-channel M3U is pasted, and instant playback via `HlsLivePlayer`.
 
 ---
 
-## 2. Technical Stack & Data Modeling
+### 1. Overview & Core Concept
 
-### Cloud Services (Firebase)
-1. **Firebase Authentication**:
-   - Google Sign-In with popup provider.
-   - Auth state listener with role resolution via Firestore document.
-2. **Cloud Firestore**:
-   - `users/{uid}`: Profile data (`displayName`, `email`, `photoURL`, `role`, `handle`, `createdAt`, `subscriberCount`).
-   - `admins/{uid}`: Admin identity verification documents (secures ABAC rule checks).
-   - `videos/{videoId}`: Video documents (`title`, `description`, `videoUrl`, `thumbnailUrl`, `creatorId`, `creatorName`, `views`, `likes`, `visibility`, `status`, `createdAt`).
-   - `reports/{reportId}`: Content moderation flags.
-   - `platform_metrics/overview`: Aggregated statistics.
-
-### Security & Compliance
-- Strict schema enforcement via `firebase-blueprint.json`.
-- Zero-Trust Firestore Security Rules (`firestore.rules`) with `isValidVideo()`, `isValidUser()`, `isAdmin()`, and `handleFirestoreError` contextual logging.
+The **Network Stream (নেটওয়ার্ক স্ট্রিম)** feature empowers NestTube users to stream any private, public, or regional broadcast by simply pasting a web URL:
+1. **Direct Stream Feeds**: Pasting a direct `.m3u8` or `.mp4` URL instantly begins live playback with full player controls, audio switcher, and picture-in-picture.
+2. **Multi-Channel M3U Playlists**: Pasting an M3U playlist URL (`http.../playlist.m3u`) parses all embedded television channels, categorizes them, and provides a 20-item batch infinite scroll channel grid with real-time search.
+3. **Cross-Device Stream Cloud Sync**: When authenticated, custom streams and playlists automatically sync to the user's Firestore profile (`users/{userId}/network_streams`). Guest users benefit from local IndexedDB storage.
+4. **Quick Sample Presets**: Includes one-click test streams (e.g., Apple HLS Sample, Big Buck Bunny 1080p, Akamai Test Stream) for instant validation.
 
 ---
 
-## 3. Key Components & User Interface
+### 2. User Experience & Visual Design
 
-### A. Authentication & User Profile Modal
-- **Obsidian Glass Modal**:
-  - Google Sign-In button with subtle aurora gradient glow.
-  - Profile dropdown with avatar, channel link, Studio link, Admin panel link (if admin), and sign-out.
-  - Active session persistence across browser reloads.
+#### A. Key User Flows
+- **Pasting & Playing a Single Stream**:
+  User enters `https://example.com/live/feed.m3u8`, clicks "স্ট্রিম শুরু করুন (Play Stream)". The app detects a single stream, loads it into `HlsLivePlayer`, and automatically saves it to their "Saved Network Streams" library.
+- **Loading a Full M3U Playlist**:
+  User pastes an M3U URL containing 200 channels. The stream sniffer identifies `#EXTM3U`, extracts all channels with logos and categories, and displays an interactive channel switcher sidebar alongside the video player.
+- **Managing Saved Streams**:
+  A visual library of previously added network streams displays title, stream URL, date added, and one-click play or delete actions.
+- **Quick Test Strip**:
+  A curated row of verified test streams allows users to test their player buffering and network speed with a single click.
 
-### B. YouTube Studio (Creator Dashboard)
-- **Navigation Bar**: Tabbed sub-views:
-  1. **Dashboard Overview**: Latest video performance, total views, subscriber count, quick actions.
-  2. **Content Manager (Videos)**: Filterable table of published videos with view counts, likes, visibility toggle, edit metadata modal, and delete confirmation.
-  3. **Video Uploader**: Modal/page with real-time preview (video link, thumbnail URL, title, tags, description, category selector).
-  4. **Analytics**: Visual interactive charts showing view velocity, engagement rate, top-performing videos, and watch stats.
-  5. **Customization**: Channel banner, avatar, handle (`@username`), and bio.
-
-### C. Admin Control Panel
-- **Navigation & Security Gate**: Route/view guard checking `admins/{uid}` document.
-- **Sub-sections**:
-  1. **Platform Analytics**: Total users, total active channels, video count, view impressions.
-  2. **User Management**: Searchable user roster with role switcher (`viewer`, `creator`, `admin`) and account status toggle (`active`, `suspended`).
-  3. **Content Moderation Queue**: List of all uploaded videos with 1-click ban/unpublish, feature to frontpage, or delete.
+#### B. Visual Identity & Theme
+- **Dominant Neutral Canvas (60%)**: Deep obsidian black (`#070a12` / `#0b0f19`) providing cinematic contrast.
+- **Structural Surfaces (30%)**: Glass panels (`bg-white/[0.04]`, `border border-white/[0.08]`) with clean hairline dividers.
+- **Accent Budget (10%)**: Radiant cyan (`#06b6d4`) and electric pink (`#ff2d6f`) highlighting active streams and play actions.
+- **Typography**: Clean sans paired with tabular numbers (`font-mono tabular-nums`) for bitrates and stream URLs. Unboxed metadata separated by typographic dots (`·`).
 
 ---
 
-## 4. Implementation Phases
+### 3. Key Product Decisions & Trade-Offs
 
-- **Phase 1: Firebase Setup & Provisioning**
-  - Trigger Firebase setup UI for user confirmation.
-  - Verify terms acceptance and provision Firebase via `ProvisionFirebase`.
-  - Install Firebase client SDK.
-  - Create `firebase-blueprint.json` and generate hardened `firestore.rules`.
-  - Deploy security rules via `DeployRules`.
+#### Decision 1: Hybrid Dual-Layer Storage (Firestore + IndexedDB)
+- **Chosen Approach**: If the user is logged in, sync streams to Firestore (`users/{userId}/network_streams`); for guest users, store locally in IndexedDB (`nesttube_custom_streams`).
+- **Why**: Ensures zero barriers to entry for guest viewers while fulfilling the confirmed requirement for seamless cross-device synchronization for registered users.
+- **Alternatives Considered**: Firestore-only blocks guest viewers; LocalStorage-only fails to sync across devices and risks 5MB quota errors.
 
-- **Phase 2: Auth Context & State Management**
-  - Implement `src/contexts/AuthContext.tsx` with user state, role detection, sign-in, and sign-out.
-  - Implement Firestore helper utilities with error wrapping (`handleFirestoreError`).
+#### Decision 2: Automatic Stream Type Detection (Sniffer)
+- **Chosen Approach**: Inspect URL extensions (`.m3u`, `.m3u8`, `.mp4`) and perform a lightweight `HEAD` or initial chunk text check to automatically detect whether the URL is a single channel or a full multi-channel playlist.
+- **Why**: Eliminates manual user toggling ("is this a single stream or playlist?") and delivers an effortless, smart user experience.
 
-- **Phase 3: Creator Studio Dashboard Components**
-  - Create `src/components/studio/CreatorStudio.tsx`, `VideoUploader.tsx`, `ContentTable.tsx`, and `StudioAnalytics.tsx`.
-  - Wire video submissions directly into the main app video feed so creator uploads appear instantly on Home and Explore pages.
+#### Decision 3: CORS & Stream Error Recovery
+- **Chosen Approach**: Integrated stream diagnostic check. If a stream fails due to CORS or host restrictions, the player offers a direct stream link, error recovery retry, and clear feedback.
 
-- **Phase 4: Admin Control Panel Components**
-  - Create `src/components/admin/AdminPanel.tsx`, `UserRoster.tsx`, and `ContentModeration.tsx`.
-  - Wire role adjustments and status flags to Firestore.
+---
 
-- **Phase 5: Navigation & UI Integration**
-  - Update top navigation bar with User Avatar menu, "Studio" button, and "Admin" badge.
-  - Test responsive layout and seamless obsidian glass aesthetics.
-  - Run build compilation and verify zero TypeScript or lint errors.
+### 4. Technical Architecture & Data Strategy
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        NestTube Application Layer                     │
+├────────────────────────────────────────────────────────────────────────┤
+│             Sidebar Navigation  -->  /network-stream Route             │
+├────────────────────────────────────────────────────────────────────────┤
+│                       Network Stream Page View                         │
+│ ┌───────────────────────────────────┬────────────────────────────────┐ │
+│ │ URL Input Bar & Stream Sniffer    │ Quick-Test Stream Presets      │ │
+│ └───────────────────────────────────┴────────────────────────────────┘ │
+│ ┌───────────────────────────────────┬────────────────────────────────┐ │
+│ │ HlsLivePlayer (Balanced Buffers)  │ Channel List / Stream Library  │ │
+│ └───────────────────────────────────┴────────────────────────────────┘ │
+├────────────────────────────────────────────────────────────────────────┤
+│                          Persistence Layer                             │
+│ ┌────────────────────────────────────┬───────────────────────────────┐ │
+│ │ Logged-In: Firestore Sync          │ Guest: IndexedDB Store        │ │
+│ │ users/{userId}/network_streams     │ nesttube_custom_streams       │ │
+│ └────────────────────────────────────┴───────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Core Components & Implementation Steps:
+1. **`firebase-blueprint.json` & `firestore.rules` Update**:
+   - Add `network_streams` subcollection definition under `users/{userId}/network_streams/{streamId}`.
+   - Enforce owner-only reads and writes via `isOwner(userId)`.
+2. **`src/services/networkStreamService.ts`**:
+   - URL detection (`isM3uPlaylist(url)` vs `isDirectStream(url)`).
+   - Multi-channel M3U parser.
+   - CRUD functions for saving, listing, and removing custom streams with Firestore and IndexedDB fallback.
+3. **`src/pages/NetworkStream.tsx`**:
+   - Sleek URL input with clipboard paste button, format auto-detection, and play trigger.
+   - Quick-test stream chips.
+   - Integrated `HlsLivePlayer` with stream status badge.
+   - Saved streams management list with one-click resume.
+4. **`src/components/layout/Sidebar.tsx` & `src/App.tsx`**:
+   - Add "নেটওয়ার্ক স্ট্রিম (Network Stream)" navigation item with `Radio` / `Globe` icon.
+   - Register route `/network-stream`.

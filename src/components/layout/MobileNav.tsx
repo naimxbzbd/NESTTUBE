@@ -7,17 +7,17 @@ export function MobileNav() {
   const location = useLocation();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-header border-t border-white/10 grid grid-cols-5 items-center z-40 text-white px-1 shadow-2xl">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-header border-t border-black/5 dark:border-white/10 grid grid-cols-5 items-center z-40 text-[var(--color-text)] px-1 shadow-2xl">
       {/* Home */}
       <Link 
         to="/" 
         className="flex flex-col items-center justify-center gap-1 py-1 text-center"
       >
         <Home 
-          className={cn("w-5 h-5", location.pathname === '/' ? "text-[#ff2d6f]" : "text-gray-400")} 
+          className={cn("w-5 h-5", location.pathname === '/' ? "text-[#ff2d6f]" : "text-neutral-500 dark:text-gray-400")} 
           fill={location.pathname === '/' ? "currentColor" : "none"} 
         />
-        <span className={cn("text-[10px]", location.pathname === '/' ? "font-bold text-[#ff2d6f]" : "text-gray-400")}>
+        <span className={cn("text-[10px]", location.pathname === '/' ? "font-bold text-[#ff2d6f]" : "text-neutral-500 dark:text-gray-400")}>
           হোম
         </span>
       </Link>

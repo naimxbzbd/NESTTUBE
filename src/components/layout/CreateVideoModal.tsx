@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Upload, Video, Image, FileText, CheckCircle2 } from 'lucide-react';
 import { useUserStore } from '../../store/useUserStore';
 
@@ -58,9 +59,10 @@ export function CreateVideoModal({ isOpen, onClose }: CreateVideoModalProps) {
     }, 1500);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-neutral-200 dark:border-white/10 transition-colors">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
+      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-2xl w-full max-w-lg my-auto shadow-2xl overflow-hidden border border-neutral-200 dark:border-white/10 transition-colors relative">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-white/10">
@@ -188,4 +190,6 @@ export function CreateVideoModal({ isOpen, onClose }: CreateVideoModalProps) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

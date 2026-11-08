@@ -1,6 +1,6 @@
 {
-  "name": "NestTube",
-  "description": "NestTube - 3D Metallic Entertainment, 24/7 Bangla Live TV, Natok, Movies & Shorts",
+  "name": "NESTTUBE",
+  "description": "NESTTUBE (Nest TV) – 3D Metallic Entertainment, 24/7 Bangla Live TV, Natok, Movies, Shorts, 4K Speed Test & Referral Rewards by XBZ Intelligence (Naim Xbz)",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Key, Sparkles, Shield, Video, CheckCircle2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Mail, Lock, User, Key, Sparkles, Shield, Video, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUserStore } from '../../store/useUserStore';
 import { cn } from '../../lib/utils';
@@ -30,13 +31,17 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     setIsGoogleLoading(true);
     try {
       await signInWithGoogle();
-      setSuccess('সফলভাবে লগইন হয়েছে!');
+      setSuccess('সফলভাবে Google দিয়ে লগইন হয়েছে!');
       setTimeout(() => {
         onClose();
       }, 700);
     } catch (err: any) {
-      console.error(err);
-      setError(err?.message || 'Google দিয়ে সাইন-ইন সম্পন্ন করা যায়নি।');
+      console.warn('Google sign in feedback:', err);
+      if (err?.code === 'auth/popup-closed-by-user' || err?.message?.includes('closed-by-user')) {
+        setIsGoogleLoading(false);
+        return;
+      }
+      setError('Google সাইন-ইন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     } finally {
       setIsGoogleLoading(false);
     }
@@ -51,7 +56,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       const ok = login(email, password);
       if (ok) {
         setSuccess('সফলভাবে লগইন হয়েছে!');
-        setTimeout(() => onClose(), 800);
+        setTimeout(() => onClose(), 700);
       } else {
         setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে');
       }
@@ -63,7 +68,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       const ok = register(email, password, name);
       if (ok) {
         setSuccess('অ্যাকাউন্ট তৈরি হয়েছে! লগইন হচ্ছে...');
-        setTimeout(() => onClose(), 1200);
+        setTimeout(() => onClose(), 1000);
       } else {
         setError('এই ইমেইলে ইতিমধ্যে অ্যাকাউন্ট রয়েছে');
       }
@@ -75,40 +80,49 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       const ok = applyCoupon(coupon);
       if (ok) {
         setSuccess('কুপন সক্রিয় হয়েছে! প্রিমিয়াম সুবিধা চালু হয়েছে।');
-        setTimeout(() => onClose(), 1500);
+        setTimeout(() => onClose(), 1200);
       } else {
         setError('ভুল কুপন কোড');
       }
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      {/* Background click to dismiss */}
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
+
       <div
-        className="w-full max-w-md rounded-3xl bg-[#0d1117]/95 border border-white/10 shadow-2xl overflow-hidden relative"
+        className="w-full max-w-md my-auto rounded-3xl bg-[#0d1117] border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] overflow-hidden relative text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top ambient glow */}
-        <div className="absolute -top-20 -right-20 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient Aurora Glow in Obsidian Card */}
+        <div className="absolute -top-24 -right-24 w-56 h-56 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-purple-600/25 rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10 relative z-10">
+        <div className="flex items-center justify-between p-5 border-b border-white/10 relative z-10 bg-white/[0.02]">
           <div>
-            <h2 className="text-lg font-black text-white">
-              {mode === 'login' && 'NestTube এ লগইন করুন'}
-              {mode === 'register' && 'নতুন অ্যাকাউন্ট তৈরি করুন'}
-              {mode === 'coupon' && 'কুপন রিডিম করুন'}
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <span>
+                {mode === 'login' && 'NESTTUBE এ লগইন করুন'}
+                {mode === 'register' && 'নতুন অ্যাকাউন্ট তৈরি করুন'}
+                {mode === 'coupon' && 'কুপন রিডিম করুন'}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/30 uppercase font-bold">
+                Auth
+              </span>
             </h2>
             <p className="text-xs text-neutral-400 mt-0.5">
-              {mode === 'login' && 'ভিডিও দেখতে, আপলোড করতে ও মন্তব্য করতে সাইন-ইন করুন'}
+              {mode === 'login' && 'ভিডিও দেখতে, আপলোড করতে ও স্টুডিও চালাতে সাইন-ইন করুন'}
               {mode === 'register' && 'ক্রিয়েটর ও ভিউয়ার কমিউনিটিতে যোগ দিন'}
-              {mode === 'coupon' && 'ফ্রি প্রিমিয়াম কোড থাকলে প্রবেশ করান'}
+              {mode === 'coupon' && 'ফ্রি প্রিমিয়াম কুপন কোড থাকলে প্রবেশ করান'}
             </p>
           </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/10 rounded-full transition-colors text-neutral-400 hover:text-white cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -116,8 +130,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
         <div className="p-6 space-y-4 relative z-10">
           {error && (
-            <div className="p-3 bg-red-500/20 border border-red-500/40 text-red-300 text-xs rounded-xl font-medium">
-              {error}
+            <div className="p-3 bg-red-500/20 border border-red-500/40 text-red-300 text-xs rounded-xl font-medium flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
           {success && (
@@ -158,7 +173,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     />
                   </svg>
                 )}
-                <span>Google দিয়ে সরাসরি ১-ক্লিকে প্রবেশ করুন</span>
+                <span>Google দিয়ে সরাসরি প্রবেশ করুন</span>
               </button>
 
               <div className="flex items-center gap-3 my-2">
@@ -280,4 +295,6 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

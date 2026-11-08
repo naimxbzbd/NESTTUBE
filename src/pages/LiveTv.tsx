@@ -20,9 +20,12 @@ import {
   M3U_PLAYLIST_URL,
 } from '../services/m3uService';
 import { HlsLivePlayer } from '../components/video/HlsLivePlayer';
+import { MediaImage } from '../components/ui/MediaImage';
 import { AdContainer } from '../components/ads/AdContainer';
 import { useAdsterra } from '../context/AdsterraContext';
 import { InfiniteScrollSentinel } from '../components/ui/InfiniteScrollSentinel';
+
+const BATCH_SIZE = 20;
 
 export const LiveTv: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,18 +38,18 @@ export const LiveTv: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeChannel, setActiveChannel] = useState<M3uChannel | null>(null);
   const [copied, setCopied] = useState(false);
-  const [visibleCount, setVisibleCount] = useState<number>(36);
+  const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
   const [isChannelLoadingMore, setIsChannelLoadingMore] = useState<boolean>(false);
 
   const { isPremium } = useAdsterra();
 
   const handleLoadMoreChannels = () => {
-    if (isChannelLoadingMore) return;
+    if (isChannelLoadingMore || visibleCount >= filteredChannels.length) return;
     setIsChannelLoadingMore(true);
     setTimeout(() => {
-      setVisibleCount((prev) => prev + 24);
+      setVisibleCount((prev) => prev + BATCH_SIZE);
       setIsChannelLoadingMore(false);
-    }, 350);
+    }, 250);
   };
 
   // Load playlist from raw M3U URL
@@ -415,7 +418,7 @@ export const LiveTv: React.FC = () => {
               key={cat.id}
               onClick={() => {
                 setSelectedCategory(cat.id);
-                setVisibleCount(36);
+                setVisibleCount(BATCH_SIZE);
               }}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
                 selectedCategory === cat.id
@@ -464,15 +467,13 @@ export const LiveTv: React.FC = () => {
                         : 'glass-card border-white/5 hover:border-white/20 hover:scale-[1.02]'
                     }`}
                   >
-                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden mb-2.5 p-1.5 bg-black/40 border border-white/10 flex items-center justify-center shadow-inner">
-                      <img
+                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden mb-2.5 p-1 bg-black/40 border border-white/10 flex items-center justify-center shadow-inner">
+                      <MediaImage
                         src={channel.logo}
                         alt={channel.name}
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                        className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform"
+                        type="channel"
+                        fallbackText={channel.name}
+                        className="rounded-xl group-hover:scale-105 transition-transform"
                       />
                       <div className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                     </div>

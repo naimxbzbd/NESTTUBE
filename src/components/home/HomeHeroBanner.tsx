@@ -24,7 +24,7 @@ export const HomeHeroBanner: React.FC<HomeHeroBannerProps> = ({ video, category 
   if (!id) return null;
 
   const title = video.snippet.title || 'Featured Content';
-  const channelName = video.snippet.channelTitle || 'PipraTube Creator';
+  const channelName = video.snippet.channelTitle || 'NESTTUBE Creator';
   const description = video.snippet.description || '';
   const views = video.statistics?.viewCount;
   const publishedAt = video.snippet.publishedAt;
@@ -72,44 +72,44 @@ export const HomeHeroBanner: React.FC<HomeHeroBannerProps> = ({ video, category 
   const isSaved = isInWatchLater(id);
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/[0.08] group select-none glass-panel">
+    <div className="relative w-full rounded-3xl overflow-hidden mb-8 shadow-md dark:shadow-2xl border border-black/10 dark:border-white/[0.08] group select-none glass-panel">
       {/* Background Thumbnail Image with Cinematic Blur & Gradient */}
-      <div className="absolute inset-0 bg-[#06090e] z-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[#e2e8f0] dark:bg-[#06090e] z-0 overflow-hidden">
         {!imgError ? (
           <img
             src={thumbnailUrl}
             alt={title}
-            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700 opacity-20 filter blur-xs"
+            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700 opacity-25 dark:opacity-20 filter blur-xs"
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-pink-950 via-[#06090e] to-purple-950" />
+          <div className="w-full h-full bg-gradient-to-r from-pink-100 dark:from-pink-950 via-[#f1f5f9] dark:via-[#06090e] to-purple-100 dark:to-purple-950" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06090e] via-[#06090e]/85 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06090e]/95 via-[#06090e]/60 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-page)] via-[var(--color-page)]/85 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-page)]/95 via-[var(--color-page)]/70 to-transparent z-10" />
       </div>
 
       {/* Hero Content Container */}
       <div className="relative z-20 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="max-w-2xl flex flex-col gap-3">
-          {/* PipraTube Spotlight Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/15 border border-[#ff2d6f]/30 text-[#ff2d6f] text-xs font-bold tracking-wide uppercase shadow-sm w-fit">
+          {/* NESTTUBE Spotlight Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 dark:bg-pink-500/15 border border-[#ff2d6f]/30 text-[#ff2d6f] text-xs font-bold tracking-wide uppercase shadow-sm w-fit">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>PipraTube Spotlight • {category === 'All' ? 'বিশেষ প্রদর্শনী' : category}</span>
+            <span>NESTTUBE Spotlight • {category === 'All' ? 'বিশেষ প্রদর্শনী' : category}</span>
           </div>
 
           {/* Title */}
           <Link to={`/watch/${id}`} onClick={handlePlayClick}>
             <h1
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight hover:text-[#ff2d6f] transition-colors line-clamp-2"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight hover:text-[#ff2d6f] transition-colors line-clamp-2"
               dangerouslySetInnerHTML={{ __html: title }}
             />
           </Link>
 
           {/* Channel info & statistics */}
-          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-300 font-medium">
-            <span className="font-bold text-white flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-700 dark:text-gray-300 font-semibold">
+            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#ff2d6f]" />
               {channelName}
             </span>
@@ -124,7 +124,7 @@ export const HomeHeroBanner: React.FC<HomeHeroBannerProps> = ({ video, category 
             {duration && (
               <>
                 <span>•</span>
-                <span className="px-2 py-0.5 rounded bg-black/60 text-white text-xs font-mono font-semibold">
+                <span className="px-2 py-0.5 rounded bg-black/10 dark:bg-black/60 text-slate-900 dark:text-white text-xs font-mono font-bold">
                   {formatDuration(duration)}
                 </span>
               </>
@@ -133,7 +133,7 @@ export const HomeHeroBanner: React.FC<HomeHeroBannerProps> = ({ video, category 
 
           {/* Description */}
           {description && (
-            <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-400 line-clamp-2 leading-relaxed max-w-xl font-medium">
               {description}
             </p>
           )}

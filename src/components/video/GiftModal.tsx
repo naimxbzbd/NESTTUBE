@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Gift, Coins, Plus, Check, Sparkles } from 'lucide-react';
 import { useCoinStore, VIRTUAL_GIFTS, VirtualGift } from '../../store/useCoinStore';
 
@@ -37,9 +38,10 @@ export const GiftModal: React.FC = () => {
 
   const hasEnoughCoins = coins >= selectedGift.coins;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={closeGiftModal} />
+      <div className="relative w-full max-w-md my-auto glass-panel border border-white/10 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
           <div className="flex items-center gap-2.5">
@@ -156,4 +158,6 @@ export const GiftModal: React.FC = () => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

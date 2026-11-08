@@ -3,6 +3,9 @@
  * Source: https://raw.githubusercontent.com/naimxbzbd/XBZ-Prime-TV/refs/heads/main/playlist.m3u
  */
 
+import { getCachedPlaylist, setCachedPlaylist } from './indexedDbStorage';
+import { prewarmImages, sanitizeImageUrl } from './imageAssetCache';
+
 export interface M3uChannel {
   id: string;
   name: string;
@@ -27,9 +30,8 @@ export interface M3uCategory {
 export const M3U_PLAYLIST_URL =
   'https://raw.githubusercontent.com/naimxbzbd/XBZ-Prime-TV/refs/heads/main/playlist.m3u';
 
-const CACHE_KEY = 'nesttube_m3u_channels_v2';
-const CACHE_TIME_KEY = 'nesttube_m3u_channels_v2_time';
-const CACHE_DURATION_MS = 1000 * 60 * 30; // 30 minutes cache
+const CACHE_KEY = 'nesttube_m3u_channels_v3_idb';
+const CACHE_DURATION_MS = 1000 * 60 * 60 * 4; // 4 hours freshness
 
 /**
  * Normalizes Unicode stylized characters (e.g. 𝐁𝐚𝐧𝐠𝐥𝐚𝐝𝐞𝐬𝐡𝐢 -> Bangladeshi)
@@ -149,7 +151,7 @@ export function parseM3u(text: string): M3uChannel[] {
       const group = normalizeGroupTitle(rawGroup);
 
       const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-      const logo = logoMatch ? logoMatch[1].trim() : '';
+      const logo = logoMatch ? sanitizeImageUrl(logoMatch[1]) : '';
 
       const idMatch = line.match(/tvg-id="([^"]*)"/);
       const tvgId = idMatch ? idMatch[1].trim() : undefined;
@@ -200,38 +202,54 @@ export function parseM3u(text: string): M3uChannel[] {
     }
   }
 
+  // Prewarm initial batch of channel logos
+  if (channels.length > 0) {
+    prewarmImages(channels.slice(0, 40).map((c) => c.logo), 40);
+  }
+
   return channels;
 }
 
 /**
- * Fetches the M3U playlist from GitHub raw URL with fallback caching
+ * Fetches the M3U playlist with IndexedDB persistent storage and background synchronization
  */
 export async function fetchM3uPlaylist(forceRefresh = false): Promise<M3uChannel[]> {
-  // Check localStorage cache first if not forced refresh
-  if (!forceRefresh) {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
-      if (cached && cacheTime) {
-        const age = Date.now() - parseInt(cacheTime, 10);
-        if (age < CACHE_DURATION_MS) {
-          const parsed = JSON.parse(cached) as M3uChannel[];
-          if (parsed && parsed.length > 0) {
-            return parsed;
-          }
-        }
-      }
-    } catch {
-      // Local storage issue, proceed to fetch
+  // Check IndexedDB cache first
+  const { data: cached, timestamp } = await getCachedPlaylist<M3uChannel>(CACHE_KEY);
+
+  const isCacheFresh = cached && cached.length > 0 && Date.now() - timestamp < CACHE_DURATION_MS;
+
+  if (isCacheFresh && !forceRefresh) {
+    prewarmImages(cached.slice(0, 30).map((c) => c.logo), 30);
+    // If cache is somewhat old (>30m), trigger background sync quietly
+    if (Date.now() - timestamp > 1000 * 60 * 30) {
+      setTimeout(() => {
+        syncM3uInBackground();
+      }, 2000);
     }
+    return cached;
   }
 
+  // If we have any cached data and not forced, return cached immediately while updating in background
+  if (cached && cached.length > 0 && !forceRefresh) {
+    prewarmImages(cached.slice(0, 30).map((c) => c.logo), 30);
+    syncM3uInBackground();
+    return cached;
+  }
+
+  return fetchFreshM3u();
+}
+
+/**
+ * Fetch fresh data directly from GitHub and cache in IndexedDB
+ */
+async function fetchFreshM3u(): Promise<M3uChannel[]> {
   try {
     const res = await fetch(M3U_PLAYLIST_URL, {
       headers: {
         Accept: 'text/plain, */*',
       },
-      cache: forceRefresh ? 'no-cache' : 'default',
+      cache: 'no-cache',
     });
 
     if (!res.ok) {
@@ -242,30 +260,35 @@ export async function fetchM3uPlaylist(forceRefresh = false): Promise<M3uChannel
     const channels = parseM3u(text);
 
     if (channels.length > 0) {
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(channels));
-        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-      } catch {
-        // LocalStorage quota may be exceeded, ignore
-      }
+      await setCachedPlaylist(CACHE_KEY, channels);
       return channels;
     }
   } catch (err) {
     console.warn('Failed to fetch M3U playlist online:', err);
-    // If network fails, try to return any cached version even if expired
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached) as M3uChannel[];
-        if (parsed.length > 0) return parsed;
-      }
-    } catch {
-      // Ignore
-    }
+    const { data: cached } = await getCachedPlaylist<M3uChannel>(CACHE_KEY);
+    if (cached && cached.length > 0) return cached;
   }
 
   // Fallback to essential curated channels if network fails completely
   return getFallbackChannels();
+}
+
+/**
+ * Background synchronizer for Live TV channels
+ */
+async function syncM3uInBackground() {
+  try {
+    const res = await fetch(M3U_PLAYLIST_URL, { cache: 'no-cache' });
+    if (res.ok) {
+      const text = await res.text();
+      const channels = parseM3u(text);
+      if (channels.length > 0) {
+        await setCachedPlaylist(CACHE_KEY, channels);
+      }
+    }
+  } catch {
+    // Silent fail in background
+  }
 }
 
 /**

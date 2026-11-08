@@ -33,7 +33,7 @@ export const FEATURED_HERO_VIDEOS: PipraVideoItem[] = [
     category: 'natok',
     thumbnail: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=1280&auto=format&fit=crop&q=80',
     bannerImage: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&auto=format&fit=crop&q=80',
-    channelTitle: 'PipraTube Originals',
+    channelTitle: 'NESTTUBE Originals',
     views: '3.8M',
     publishedAt: '২ দিন আগে',
     duration: '48:15',

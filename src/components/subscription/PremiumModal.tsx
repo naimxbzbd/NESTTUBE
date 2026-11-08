@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, 
   Crown, 
@@ -131,14 +132,16 @@ export const PremiumModal: React.FC = () => {
     },
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 -z-10" onClick={closePremiumModal} />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-2xl max-h-[92vh] flex flex-col bg-neutral-900 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden text-neutral-100"
+          className="relative w-full max-w-2xl my-auto max-h-[92vh] flex flex-col bg-neutral-900 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden text-neutral-100"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Top Ambient Glow Banner */}
           <div className="relative h-28 sm:h-32 bg-gradient-to-r from-amber-600/30 via-yellow-500/20 to-purple-600/30 border-b border-amber-500/20 flex items-center justify-between px-6 shrink-0 overflow-hidden">
@@ -729,4 +732,6 @@ export const PremiumModal: React.FC = () => {
       </div>
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

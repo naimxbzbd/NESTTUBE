@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Radio, ChevronRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchM3uPlaylist, M3uChannel } from '../../services/m3uService';
+import { MediaImage } from '../ui/MediaImage';
 
 export const HomeLiveTvSection: React.FC = () => {
   const [channels, setChannels] = useState<M3uChannel[]>([]);
@@ -88,14 +89,12 @@ export const HomeLiveTvSection: React.FC = () => {
               className="group shrink-0 w-36 sm:w-44 p-3 rounded-2xl glass-card transition-all hover:scale-[1.03] text-center flex flex-col items-center"
             >
               <div className="relative w-16 sm:w-20 h-16 sm:h-20 rounded-2xl overflow-hidden mb-2.5 p-1 bg-black/40 border border-white/10 flex items-center justify-center">
-                <img
+                <MediaImage
                   src={channel.logo}
                   alt={channel.name}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                  className="w-full h-full object-contain rounded-xl"
+                  type="channel"
+                  fallbackText={channel.name}
+                  className="rounded-xl"
                 />
                 <div className="absolute top-1 right-1 px-1 rounded text-[8px] font-bold bg-red-600 text-white flex items-center gap-0.5">
                   <span className="w-1 h-1 rounded-full bg-white animate-ping" />

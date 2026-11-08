@@ -29,6 +29,11 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
+
+      // Custom network streams subcollection
+      match /network_streams/{streamId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Videos collection

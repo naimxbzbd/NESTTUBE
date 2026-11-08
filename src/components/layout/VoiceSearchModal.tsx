@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Mic, MicOff, X, Search, Globe, Sparkles, RefreshCw, Volume2, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -250,13 +251,13 @@ export function VoiceSearchModal({ isOpen, onClose }: VoiceSearchModalProps) {
     }
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1f1f1f] text-neutral-900 dark:text-white rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 relative border border-neutral-200 dark:border-white/10 flex flex-col items-center text-center transition-colors"
+        className="bg-white dark:bg-[#1f1f1f] text-neutral-900 dark:text-white rounded-3xl w-full max-w-lg my-auto shadow-2xl p-6 sm:p-7 relative border border-neutral-200 dark:border-white/10 flex flex-col items-center text-center transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -435,4 +436,6 @@ export function VoiceSearchModal({ isOpen, onClose }: VoiceSearchModalProps) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Clock, BarChart3, Moon, Sparkles } from 'lucide-react';
 import { useUserStore } from '../../store/useUserStore';
 
@@ -18,9 +19,10 @@ export function WatchTimeModal({ isOpen, onClose }: WatchTimeModalProps) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const mockWeeklyData = [25, 40, 15, 60, 30, 90, watchTimeMinutesToday];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-neutral-200 dark:border-white/10 transition-colors">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
+      <div className="bg-white dark:bg-[#212121] text-neutral-900 dark:text-white rounded-3xl w-full max-w-md my-auto shadow-2xl p-6 border border-neutral-200 dark:border-white/10 transition-colors relative">
         
         <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-white/10">
           <div className="flex items-center gap-2">
@@ -99,4 +101,6 @@ export function WatchTimeModal({ isOpen, onClose }: WatchTimeModalProps) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Tv, Film, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Coins, Code2, Mail, Sparkles, Handshake, X, ListVideo, Layers, Video, ShieldAlert } from 'lucide-react';
+import { Home, Tv, Film, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Coins, Code2, Mail, Sparkles, Handshake, X, ListVideo, Layers, Video, ShieldAlert, Activity, UserPlus, Clapperboard, Globe } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useUserStore } from '../../store/useUserStore';
@@ -31,14 +31,14 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar py-3 text-white glass-sidebar">
+    <div className="flex flex-col h-full overflow-y-auto custom-scrollbar py-3 text-[var(--color-text)] glass-sidebar">
       {/* Mobile Header in Drawer */}
       {isMobileOpen && (
-        <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-white/10 md:hidden">
+        <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-black/10 dark:border-white/10 md:hidden">
           <AnimatedNestLogo compact onClick={handleLinkClick} />
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500 dark:text-white/70 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -46,15 +46,15 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
       )}
 
       <nav className="flex-1 space-y-1 px-3">
-        {/* Main PipraTube Navigation */}
+        {/* Main NESTTUBE Navigation */}
         <Link
           to="/"
           onClick={handleLinkClick}
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <Home className="w-5 h-5" fill={isActive('/') ? "currentColor" : "none"} />
@@ -68,8 +68,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
             isActive('/live-tv')
-              ? "bg-red-500/15 border border-red-500/30 text-red-400 font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-red-500/15 border border-red-500/30 text-red-500 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <div className="flex items-center gap-4">
@@ -82,6 +82,66 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           </span>
         </Link>
 
+        {/* Movies (Metflix Playlist) */}
+        <Link
+          to="/movies"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/movies')
+              ? "bg-pink-500/15 border border-pink-500/30 text-pink-500 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <Film className="w-5 h-5 text-pink-500 group-hover:scale-110 transition-transform" />
+            <span>সিনেমা (Movies)</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 uppercase">
+            FILM
+          </span>
+        </Link>
+
+        {/* Web Series */}
+        <Link
+          to="/series"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/series')
+              ? "bg-purple-500/15 border border-purple-500/30 text-purple-400 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <Clapperboard className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+            <span>ওয়েব সিরিজ (Series)</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase">
+            SERIES
+          </span>
+        </Link>
+
+        {/* Network Stream (Custom URL / M3U) */}
+        <Link
+          to="/network-stream"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/network-stream')
+              ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <Globe className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span>নেটওয়ার্ক স্ট্রিম (Stream)</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase">
+            M3U/HLS
+          </span>
+        </Link>
+
         {/* Shorts */}
         <Link
           to="/shorts"
@@ -89,8 +149,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/shorts')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <MonitorPlay className="w-5 h-5 text-[#ff2d6f]" />
@@ -104,11 +164,11 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/trending')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
-          <Film className="w-5 h-5 text-purple-400" />
+          <Film className="w-5 h-5 text-purple-500" />
           <span>নাটক ও সিনেমা</span>
         </Link>
 
@@ -119,11 +179,11 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/subscriptions')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
-          <Layers className="w-5 h-5 text-blue-400" />
+          <Layers className="w-5 h-5 text-blue-500" />
           <span>সাবস্ক্রিপশন</span>
         </Link>
 
@@ -134,8 +194,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
             isActive('/studio')
-              ? "bg-pink-500/15 border border-pink-500/30 text-pink-400 font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/15 border border-pink-500/30 text-pink-500 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <div className="flex items-center gap-4">
@@ -171,24 +231,64 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
 
         <div className="h-[1px] bg-white/10 my-3 mx-2" />
 
-        {/* PipraCoins Wallet Action */}
+        {/* Refer a Friend & Get 30 Days PRO */}
+        <Link
+          to="/referrals"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/referrals')
+              ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold"
+              : "text-emerald-300 hover:bg-emerald-500/10 hover:text-emerald-200"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <UserPlus className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span>রেফার অ্যান্ড আর্ন</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            ৩০ দিন ফ্রি
+          </span>
+        </Link>
+
+        {/* 4K Internet Speed Test */}
+        <Link
+          to="/speed-test"
+          onClick={handleLinkClick}
+          className={cn(
+            "rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-colors text-sm font-semibold group",
+            isActive('/speed-test')
+              ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-500 font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <Activity className="w-5 h-5 text-cyan-500 group-hover:rotate-12 transition-transform" />
+            <span>ইন্টারনেট স্পিড টেস্ট</span>
+          </div>
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-500/20 text-cyan-500 border border-cyan-500/30">
+            4K
+          </span>
+        </Link>
+
+        {/* NESTTUBE Coins Wallet Action */}
         <button
           onClick={() => {
             openRechargeModal();
             handleLinkClick();
           }}
-          className="w-full rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-all text-sm font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-300 group"
+          className="w-full rounded-xl px-3 py-2.5 flex items-center justify-between cursor-pointer transition-all text-sm font-semibold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-500 group"
         >
           <div className="flex items-center gap-4">
-            <Coins className="w-5 h-5 text-amber-400 group-hover:rotate-12 transition-transform" />
+            <Coins className="w-5 h-5 text-amber-500 group-hover:rotate-12 transition-transform" />
             <span>কয়েন ওয়ালেট</span>
           </div>
-          <span className="font-mono text-xs font-bold text-amber-400">
+          <span className="font-mono text-xs font-bold text-amber-500">
             {coins} 🪙
           </span>
         </button>
 
-        <div className="h-[1px] bg-white/10 my-3 mx-2" />
+        <div className="h-[1px] bg-black/10 dark:bg-white/10 my-3 mx-2" />
 
         {/* Library & Playlists */}
         <Link
@@ -197,8 +297,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/library')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <HistoryIcon className="w-5 h-5" />
@@ -211,8 +311,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/playlist/watch-later')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <Clock className="w-5 h-5" />
@@ -225,8 +325,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           className={cn(
             "rounded-xl px-3 py-2.5 flex items-center gap-4 cursor-pointer transition-colors text-sm font-semibold",
             isActive('/playlist/liked')
-              ? "bg-white/10 text-[#ff2d6f] font-bold"
-              : "text-gray-300 hover:bg-white/5 hover:text-white"
+              ? "bg-pink-500/10 dark:bg-white/10 text-[#ff2d6f] font-bold"
+              : "text-neutral-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white"
           )}
         >
           <ThumbsUp className="w-5 h-5" />
@@ -308,10 +408,6 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           <p className="text-[10px] text-gray-500">3D Metallic Entertainment</p>
         </div>
       </div>
-
-      {/* Modals */}
-      <ContactDeveloperModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
-      <SponsorshipModal isOpen={isSponsorshipOpen} onClose={() => setIsSponsorshipOpen(false)} />
     </div>
   );
 
@@ -336,6 +432,10 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           </div>
         </div>
       )}
+
+      {/* Modals placed outside aside and drawer */}
+      <ContactDeveloperModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
+      <SponsorshipModal isOpen={isSponsorshipOpen} onClose={() => setIsSponsorshipOpen(false)} />
     </>
   );
 }
