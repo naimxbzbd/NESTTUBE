@@ -217,7 +217,6 @@ export const Series: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           {activeSeries && currentStreamUrl ? (
             <HlsLivePlayer
-              key={activeSeries.id}
               channel={{
                 id: `${activeSeries.id}-s${activeSeasonNum}-e${activeEpisodeNum}`,
                 name: `${activeSeries.title} · S${activeSeasonNum}E${activeEpisodeNum}`,

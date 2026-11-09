@@ -17,6 +17,11 @@ import {
   X,
   Sparkles,
   Lock,
+  Database,
+  HardDrive,
+  Server,
+  Activity,
+  Layers,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -28,6 +33,11 @@ import {
   adminUpdateReportStatus,
   deleteFirestoreVideo,
 } from '../services/videoFirestore';
+import {
+  getIndexedDbHealthStats,
+  clearAllLocalCaches,
+  CacheHealthStats,
+} from '../services/indexedDbStorage';
 import { AppUserProfile, FirestoreVideo, VideoReport, UserRole } from '../types/auth';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
@@ -35,27 +45,64 @@ import { cn } from '../lib/utils';
 export function AdminPanel() {
   const { user, userProfile, isAdmin, isLoading: authLoading, signInWithGoogle } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'videos' | 'reports'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'videos' | 'reports' | 'cache'>('overview');
   const [users, setUsers] = useState<AppUserProfile[]>([]);
   const [videos, setVideos] = useState<FirestoreVideo[]>([]);
   const [reports, setReports] = useState<VideoReport[]>([]);
+  const [cacheStats, setCacheStats] = useState<CacheHealthStats | null>(null);
+  const [loadingCacheStats, setLoadingCacheStats] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [videoSearch, setVideoSearch] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
 
+  const loadCacheStats = async () => {
+    setLoadingCacheStats(true);
+    try {
+      const data = await getIndexedDbHealthStats();
+      setCacheStats(data);
+    } catch (err) {
+      console.error('Error fetching cache stats:', err);
+    } finally {
+      setLoadingCacheStats(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে সমস্ত IndexedDB প্লেলিস্ট, প্রগ্রেস এবং ইমেজ থাম্বনেইল ক্যাশ মুছে ফেলতে চান? এতে লোকাল স্টোরেজ সম্পূর্ণ খালি হবে।')) {
+      return;
+    }
+    setIsClearingCache(true);
+    try {
+      const res = await clearAllLocalCaches();
+      if (res.success) {
+        setActionSuccess('IndexedDB ও ব্রাউজার ক্যাশ সফলভাবে খালি করা হয়েছে!');
+        await loadCacheStats();
+        setTimeout(() => setActionSuccess(''), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('ক্যাশ খালি করার সময় সমস্যা হয়েছে।');
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
   const loadAdminData = async () => {
     if (!isAdmin) return;
     setLoading(true);
     try {
-      const [usersData, videosData, reportsData] = await Promise.all([
+      const [usersData, videosData, reportsData, cacheData] = await Promise.all([
         adminGetAllUsers().catch(() => []),
         adminGetAllVideos().catch(() => []),
         adminGetAllReports().catch(() => []),
+        getIndexedDbHealthStats().catch(() => null),
       ]);
       setUsers(usersData);
       setVideos(videosData);
       setReports(reportsData);
+      if (cacheData) setCacheStats(cacheData);
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -276,6 +323,22 @@ export function AdminPanel() {
               {pendingReportsCount}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('cache');
+            loadCacheStats();
+          }}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer shrink-0",
+            activeTab === 'cache'
+              ? "bg-white/10 text-white border border-white/15 shadow-inner"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          )}
+        >
+          <Database className="w-4 h-4 text-emerald-400" />
+          <span>ক্যাশ ও স্টোরেজ হেলথ</span>
         </button>
       </div>
 
@@ -647,6 +710,212 @@ export function AdminPanel() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* CACHE & STORAGE HEALTH TAB */}
+      {activeTab === 'cache' && (
+        <div className="space-y-6">
+          {/* Header Action Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Database className="w-5 h-5 text-emerald-400" />
+                <span>IndexedDB ক্যাশ ও লোকাল স্টোরেজ হেলথ মনিটর</span>
+              </h3>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                M3U লাইভ টিভি, সিনেমা, সিরিজ প্লেলিস্ট এবং অফলাইন থাম্বনেইল ক্যাশ মনিটরিং ও অপ্টিমাইজেশন
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={loadCacheStats}
+                disabled={loadingCacheStats}
+                className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-bold text-white transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={cn("w-3.5 h-3.5", loadingCacheStats && "animate-spin")} />
+                <span>রিফ্রেশ স্ট্যাটস</span>
+              </button>
+
+              <button
+                onClick={handleClearCache}
+                disabled={isClearingCache}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:opacity-95 text-xs font-bold text-white shadow-lg shadow-red-500/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isClearingCache ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>ক্যাশ খালি হচ্ছে...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>ক্যাশ খালি করুন (Clear Cache)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Metrics Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Database Health Card */}
+            <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">ডাটাবেজ স্ট্যাটাস</span>
+                <Server className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="text-2xl font-black text-white flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <span>সচল (Healthy)</span>
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-2 font-mono">
+                {cacheStats?.dbName || 'nesttube_m3u_db'} (v{cacheStats?.version || 3})
+              </p>
+            </div>
+
+            {/* Total Records in IndexedDB */}
+            <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">মোট ক্যাশ রেকর্ড</span>
+                <Layers className="w-5 h-5 text-purple-400" />
+              </div>
+              <div className="text-3xl font-black text-white">
+                {cacheStats ? cacheStats.totalRecords : '—'}
+              </div>
+              <p className="text-[11px] text-purple-300 mt-2 font-medium">
+                ৪টি অবজেক্ট স্টোরে সংরক্ষিত
+              </p>
+            </div>
+
+            {/* Browser Storage Usage */}
+            <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">ব্রাউজার স্টোরেজ ব্যবহার</span>
+                <HardDrive className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div className="text-2xl font-black text-white">
+                {cacheStats?.storageEstimate?.usageFormatted || '—'}
+              </div>
+              <div className="mt-2 space-y-1">
+                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-cyan-400 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(2, Math.min(100, cacheStats?.storageEstimate?.usagePercent || 0))}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-neutral-400 font-mono">
+                  <span>কোটা: {cacheStats?.storageEstimate?.quotaFormatted || 'সীমাহীন'}</span>
+                  <span>{cacheStats?.storageEstimate?.usagePercent || 0}% ব্যবহৃত</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Image Cache / CacheStorage */}
+            <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">ক্যাশড ইমেজ ও পোস্টার</span>
+                <Activity className="w-5 h-5 text-pink-400" />
+              </div>
+              <div className="text-3xl font-black text-white">
+                {cacheStats ? cacheStats.thumbnailCacheCount : '—'}
+              </div>
+              <p className="text-[11px] text-pink-400 mt-2 font-medium">
+                CacheStorage (জিরো বাফারিং)
+              </p>
+            </div>
+          </div>
+
+          {/* Detailed Object Stores Table */}
+          <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl space-y-4">
+            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <Database className="w-4 h-4 text-emerald-400" />
+              <span>IndexedDB অবজেক্ট স্টোর বিস্তারিত (Object Stores Breakdown)</span>
+            </h4>
+
+            <div className="overflow-x-auto rounded-2xl border border-white/10">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 text-[11px] font-bold text-neutral-400 uppercase tracking-wider bg-white/[0.02]">
+                    <th className="p-3.5">স্টোরের নাম</th>
+                    <th className="p-3.5">রেকর্ড সংখ্যা</th>
+                    <th className="p-3.5">বিবরণ ও উদ্দেশ্য</th>
+                    <th className="p-3.5 text-right">স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-xs">
+                  {cacheStats?.stores.map((store) => (
+                    <tr key={store.name} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3.5 font-mono font-bold text-purple-300">
+                        {store.name}
+                      </td>
+                      <td className="p-3.5 font-mono font-bold text-white">
+                        {store.count} টি রেকর্ড
+                      </td>
+                      <td className="p-3.5 text-neutral-300">
+                        {store.description}
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Active
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Active Cached Playlists Badges */}
+            {cacheStats?.playlistKeys && cacheStats.playlistKeys.length > 0 && (
+              <div className="pt-2">
+                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">
+                  সক্রিয় ক্যাশড প্লেলিস্ট কি (Cached Playlist Keys):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {cacheStats.playlistKeys.map((key) => (
+                    <span
+                      key={key}
+                      className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-cyan-300 flex items-center gap-1.5"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{key}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Technical Info & Optimization Note */}
+          <div className="p-6 rounded-3xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-xl space-y-3">
+            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>ক্যাশ অপ্টিমাইজেশন ও পারফরম্যান্স পলিসি</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-neutral-300 leading-relaxed">
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                <span className="font-bold text-white block">Stale-While-Revalidate</span>
+                <p className="text-neutral-400 text-[11px]">
+                  প্লেলিস্টগুলো লোকাল IndexedDB থেকে তাৎক্ষণিক মিলিসেকেন্ডে লোড হয় এবং ব্যাকগ্রাউন্ডে গিটহাব র ফাইল থেকে সিঙ্ক হয়।
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                <span className="font-bold text-white block">ব্যাচ ও ভার্চুয়াল স্ক্রল</span>
+                <p className="text-neutral-400 text-[11px]">
+                  চ্যানেল তালিকা ২০টি করে ব্যাচে লোড হয়, যাতে ব্রাউজার মেমোরিতে অতিরিক্ত লোড না পড়ে এবং ফ্রেম ড্রপ না ঘটে।
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-1">
+                <span className="font-bold text-white block">জিরো-বাফারিং ইমেজ ক্যাশ</span>
+                <p className="text-neutral-400 text-[11px]">
+                  ব্রাউজার Cache API (nesttube-thumbnails-v1) স্বয়ংক্রিয়ভাবে চ্যানেল লোগো ও পোস্টার ক্যাশ করে যাতে রি-রেন্ডার সবসময় মসৃণ থাকে।
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

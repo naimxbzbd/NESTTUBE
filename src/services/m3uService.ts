@@ -41,6 +41,7 @@ export function normalizeGroupTitle(raw: string): string {
   const normalized = raw.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim();
   
   const lower = normalized.toLowerCase();
+  if (lower.includes('эротика') || lower.includes('erotic') || lower.includes('adult') || lower.includes('18+')) return 'Adult 18+';
   if (lower.includes('bangladeshi') || lower.includes('bangladesh')) return 'Bangladeshi';
   if (lower.includes('indian bangla')) return 'Indian Bangla';
   if (lower.includes('indian hindi')) return 'Indian Hindi';
@@ -61,6 +62,8 @@ export function normalizeGroupTitle(raw: string): string {
  */
 export function getCategoryBanglaLabel(group: string): string {
   switch (group) {
+    case 'Adult 18+':
+      return '১৮+ অ্যাডাল্ট চ্যানেল (Adult 18+)';
     case 'Bangladeshi':
       return 'বাংলাদেশি চ্যানেল';
     case 'Sports':

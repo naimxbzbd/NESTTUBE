@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Home, Tv, Film, Clock, ThumbsUp, History as HistoryIcon, MonitorPlay, Flame, Coins, Code2, Mail, Sparkles, Handshake, X, ListVideo, Layers, Video, ShieldAlert, Activity, UserPlus, Clapperboard, Globe } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useUserStore } from '../../store/useUserStore';
 import { useCoinStore } from '../../store/useCoinStore';
@@ -16,6 +16,7 @@ interface SidebarProps {
 
 export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { subscribedChannels, playlists } = useUserStore();
   const { coins, openRechargeModal } = useCoinStore();
   const { isAdmin, isCreator } = useAuth();

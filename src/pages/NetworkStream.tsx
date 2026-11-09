@@ -496,7 +496,6 @@ export const NetworkStream: React.FC = () => {
             {/* Player Container */}
             <div className={`${activeStreamType === 'm3u' ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-4`}>
               <HlsLivePlayer
-                key={activeChannel ? activeChannel.id : activeStreamUrl}
                 channel={{
                   id: activeChannel ? activeChannel.id : 'custom-network-stream',
                   name: activeChannel ? activeChannel.name : activeStreamTitle,

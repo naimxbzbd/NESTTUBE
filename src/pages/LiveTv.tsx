@@ -228,7 +228,6 @@ export const LiveTv: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           {activeChannel ? (
             <HlsLivePlayer
-              key={activeChannel.id}
               channel={activeChannel}
               autoPlay={true}
               onNextChannel={handleNextChannel}

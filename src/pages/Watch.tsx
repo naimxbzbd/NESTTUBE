@@ -235,6 +235,7 @@ export function Watch() {
               controls
               autoPlay={isAutoplay}
               playsInline
+              preload="auto"
               className="w-full h-full object-contain bg-black"
             />
           ) : (

@@ -228,7 +228,6 @@ export const Movies: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           {activeMovie ? (
             <HlsLivePlayer
-              key={activeMovie.id}
               channel={{
                 id: activeMovie.id,
                 name: activeMovie.cleanTitle,

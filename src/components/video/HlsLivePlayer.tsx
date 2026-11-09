@@ -135,67 +135,35 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
     }
 
     let isMounted = true;
+    setError(null);
 
-    // Check if we should resume from saved position
-    const checkResumeAndLoad = async () => {
-      let resumeTime = initialSeekTime || 0;
-
-      if (!isLive && !resumeTime && activeMediaId) {
-        try {
-          const savedProgress = await getPlaybackProgress(activeMediaId);
-          if (
-            savedProgress &&
-            savedProgress.currentTime > 5 &&
-            savedProgress.percentage < 95
-          ) {
-            // For series, match season & episode if available
-            if (isSeries && savedProgress.episodeNumber) {
-              if (
-                savedProgress.seasonNumber === currentSeasonNumber &&
-                savedProgress.episodeNumber === currentEpisodeNumber
-              ) {
-                resumeTime = savedProgress.currentTime;
-              }
-            } else {
-              resumeTime = savedProgress.currentTime;
-            }
-          }
-        } catch {
-          // ignore error
+    const startInitialPlayback = () => {
+      if (!video) return;
+      if (autoPlay) {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Browser autoplay policy blocked unmuted video: auto-mute and play immediately
+            video.muted = true;
+            setIsMuted(true);
+            video.play().catch(() => {});
+          });
         }
       }
+    };
 
-      if (!isMounted) return;
-
-      if (resumeTime > 0) {
-        setResumedToast({ show: true, time: resumeTime });
-        setTimeout(() => {
-          if (isMounted) setResumedToast(null);
-        }, 5000);
-      }
-
-      // Check if HLS instance already exists on this video element for SEAMLESS TRANSITION
-      if (hlsRef.current && prevStreamUrlRef.current && prevStreamUrlRef.current !== streamUrl) {
-        prevStreamUrlRef.current = streamUrl;
-        setError(null);
-        setIsBuffering(true);
-
-        const hls = hlsRef.current;
-        // Seamlessly switch source without tearing down video decoders or DOM
-        hls.stopLoad();
-        hls.loadSource(streamUrl);
-        hls.startLoad(resumeTime > 0 ? resumeTime : -1);
-
-        if (autoPlay) {
-          video.play().catch(() => {});
-        }
-        return;
-      }
-
+    // If HLS instance already exists on this video element, switch source IMMEDIATELY (Zero Delay)
+    if (hlsRef.current && prevStreamUrlRef.current && prevStreamUrlRef.current !== streamUrl) {
+      prevStreamUrlRef.current = streamUrl;
+      const hls = hlsRef.current;
+      hls.stopLoad();
+      hls.startLevel = 0;
+      hls.loadSource(streamUrl);
+      hls.startLoad(initialSeekTime && initialSeekTime > 0 ? initialSeekTime : 0);
+      startInitialPlayback();
+    } else {
       // First time initialization or full reload
       prevStreamUrlRef.current = streamUrl;
-      setError(null);
-      setIsBuffering(true);
 
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -203,34 +171,24 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
       }
 
       if (Hls.isSupported()) {
-        // Specialized HLS configuration tailored for Web Series / VOD vs Live
-        const hlsConfig: Partial<HlsConfig> = isSeries
-          ? {
-              enableWorker: true,
-              lowLatencyMode: false, // Smooth forward-buffering for series VOD
-              autoStartLoad: true,
-              backBufferLength: 60, // 60s back-buffer for seamless episode rewinding
-              maxBufferLength: 45, // 45s forward buffer ensures zero micro-stutter
-              maxMaxBufferLength: 90,
-              maxBufferSize: 60 * 1000 * 1000, // 60MB RAM budget
-              capLevelToPlayerSize: true, // Optimizes bitrate to display dimensions
-              startPosition: resumeTime > 0 ? resumeTime : -1,
-              fragLoadingTimeOut: 20000,
-              manifestLoadingTimeOut: 20000,
-              progressive: true,
-            }
-          : {
-              enableWorker: true,
-              lowLatencyMode: isLive,
-              backBufferLength: 30,
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-              maxBufferSize: 60 * 1000 * 1000,
-              startLevel: -1,
-              startPosition: resumeTime > 0 ? resumeTime : -1,
-              fragLoadingTimeOut: 15000,
-              manifestLoadingTimeOut: 15000,
-            };
+        const hlsConfig: Partial<HlsConfig> = {
+          enableWorker: true,
+          lowLatencyMode: isLive,
+          startLevel: 0, // Starts at lowest level for instant first frame (<100ms), ABR scales up immediately
+          initialLiveManifestSize: 1, // Only wait for 1 manifest segment to begin playing
+          maxBufferLength: isLive ? 10 : 20,
+          maxMaxBufferLength: isLive ? 20 : 40,
+          maxBufferSize: 30 * 1000 * 1000,
+          backBufferLength: 15,
+          startFragPrefetch: true, // Prefetch next fragment immediately in parallel
+          testBandwidth: false, // Do not waste time probing bandwidth before playing
+          fpsDroppedMonitoringPeriod: 500,
+          fragLoadingTimeOut: 10000,
+          manifestLoadingTimeOut: 10000,
+          levelLoadingTimeOut: 10000,
+          progressive: true,
+          autoStartLoad: true,
+        };
 
         const hls = new Hls(hlsConfig);
         hlsRef.current = hls;
@@ -240,16 +198,11 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsBuffering(false);
-          if (resumeTime > 0) {
-            video.currentTime = resumeTime;
-          }
-          if (autoPlay) {
-            video.play().catch(() => {
-              video.muted = true;
-              setIsMuted(true);
-              video.play().catch((e) => console.log('Autoplay muted error:', e));
-            });
-          }
+          startInitialPlayback();
+        });
+
+        hls.on(Hls.Events.FRAG_LOADED, () => {
+          setIsBuffering(false);
         });
 
         hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -261,12 +214,10 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
                   setError('আপনার ইন্টারনেট সংযোগ বিচ্ছিন্ন রয়েছে। অনুগ্রহ করে সংযোগ পরীক্ষা করুন।');
                   setIsBuffering(false);
                 } else {
-                  console.log('Attempting to recover network error...');
                   hls.startLoad();
                 }
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
-                console.log('Attempting to recover media error...');
                 hls.recoverMediaError();
                 break;
               default:
@@ -274,50 +225,48 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
                 if (typeof navigator !== 'undefined' && !navigator.onLine) {
                   setError('ইন্টারনেট সংযোগ না থাকায় স্ট্রিম চালানো সম্ভব হচ্ছে না।');
                 } else {
-                  setError(
-                    'এই স্ট্রিমটি সাময়িকভাবে লোড করা সম্ভব হচ্ছে না (Stream offline or CORS restricted).'
-                  );
+                  setError('এই স্ট্রিমটি সাময়িকভাবে লোড করা সম্ভব হচ্ছে না (Stream offline or CORS restricted).');
                 }
                 setIsBuffering(false);
                 break;
             }
           }
         });
-
-        hls.on(Hls.Events.FRAG_LOADED, () => {
-          setIsBuffering(false);
-        });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = streamUrl;
-        video.addEventListener('loadedmetadata', () => {
-          setIsBuffering(false);
-          if (resumeTime > 0) {
-            video.currentTime = resumeTime;
-          }
-          if (autoPlay) {
-            video.play().catch(() => {
-              video.muted = true;
-              setIsMuted(true);
-              video.play().catch(() => {});
-            });
-          }
-        });
-
-        video.addEventListener('error', () => {
-          if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            setError('আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।');
-          } else {
-            setError('ব্রাউজারে ভিডিও লোড করতে সমস্যা হয়েছে।');
-          }
-          setIsBuffering(false);
-        });
+        video.load();
+        startInitialPlayback();
       } else {
         setError('আপনার ব্রাউজার HLS স্ট্রিমিং সমর্থন করে না।');
         setIsBuffering(false);
       }
-    };
+    }
 
-    checkResumeAndLoad();
+    // In parallel (background detached check), inspect if saved progress exists without delaying initial start
+    if (!isLive && activeMediaId && (!initialSeekTime || initialSeekTime <= 0)) {
+      getPlaybackProgress(activeMediaId).then((savedProgress) => {
+        if (!isMounted || !video) return;
+        if (savedProgress && savedProgress.currentTime > 5 && savedProgress.percentage < 95) {
+          let seekSec = savedProgress.currentTime;
+          if (isSeries && savedProgress.episodeNumber) {
+            if (
+              savedProgress.seasonNumber === currentSeasonNumber &&
+              savedProgress.episodeNumber === currentEpisodeNumber
+            ) {
+              video.currentTime = seekSec;
+              setResumedToast({ show: true, time: seekSec });
+              setTimeout(() => { if (isMounted) setResumedToast(null); }, 4000);
+            }
+          } else {
+            video.currentTime = seekSec;
+            setResumedToast({ show: true, time: seekSec });
+            setTimeout(() => { if (isMounted) setResumedToast(null); }, 4000);
+          }
+        }
+      }).catch(() => {});
+    } else if (initialSeekTime && initialSeekTime > 0) {
+      video.currentTime = initialSeekTime;
+    }
 
     return () => {
       isMounted = false;
@@ -354,6 +303,8 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
     };
     const onWaiting = () => setIsBuffering(true);
     const onPlaying = () => setIsBuffering(false);
+    const onCanPlay = () => setIsBuffering(false);
+    const onLoadedData = () => setIsBuffering(false);
 
     const onTimeUpdate = () => {
       const cur = video.currentTime;
@@ -400,6 +351,8 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
     video.addEventListener('pause', onPause);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('playing', onPlaying);
+    video.addEventListener('canplay', onCanPlay);
+    video.addEventListener('loadeddata', onLoadedData);
     video.addEventListener('timeupdate', onTimeUpdate);
 
     return () => {
@@ -407,6 +360,8 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
       video.removeEventListener('pause', onPause);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('canplay', onCanPlay);
+      video.removeEventListener('loadeddata', onLoadedData);
       video.removeEventListener('timeupdate', onTimeUpdate);
       saveCurrentProgress();
     };
@@ -551,6 +506,8 @@ export const HlsLivePlayer: React.FC<HlsLivePlayerProps> = ({
         className="w-full h-full object-contain bg-black cursor-pointer"
         onClick={togglePlay}
         playsInline
+        preload="auto"
+        autoPlay
       />
 
       {/* Buffering Indicator */}

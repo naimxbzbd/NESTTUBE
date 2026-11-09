@@ -433,3 +433,180 @@ export async function clearRecentStreamUrls(): Promise<boolean> {
   }
 }
 
+/**
+ * Cache Health & Storage statistics interface
+ */
+export interface CacheHealthStats {
+  supported: boolean;
+  dbName: string;
+  version: number;
+  totalStores: number;
+  stores: {
+    name: string;
+    count: number;
+    description: string;
+  }[];
+  playlistKeys: string[];
+  totalRecords: number;
+  storageEstimate?: {
+    usageBytes: number;
+    quotaBytes: number;
+    usagePercent: number;
+    usageFormatted: string;
+    quotaFormatted: string;
+  };
+  thumbnailCacheCount: number;
+  lastChecked: number;
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Monitors the health of the IndexedDB cache and browser storage quota
+ */
+export async function getIndexedDbHealthStats(): Promise<CacheHealthStats> {
+  const supported = typeof window !== 'undefined' && 'indexedDB' in window;
+
+  const stats: CacheHealthStats = {
+    supported,
+    dbName: DB_NAME,
+    version: DB_VERSION,
+    totalStores: 4,
+    stores: [],
+    playlistKeys: [],
+    totalRecords: 0,
+    thumbnailCacheCount: 0,
+    lastChecked: Date.now(),
+  };
+
+  if (!supported) return stats;
+
+  try {
+    const db = await getDb();
+    const storeNames = [STORE_PLAYLISTS, STORE_METADATA, STORE_PLAYBACK, STORE_RECENT_STREAMS];
+
+    const storeDescriptions: Record<string, string> = {
+      [STORE_PLAYLISTS]: 'M3U লাইভ টিভি, সিনেমা ও সিরিজের সংরক্ষিত প্লেলিস্ট',
+      [STORE_METADATA]: 'প্লেলিস্টের টাইমস্ট্যাম্প ও ভ্যালিডেশন মেটাডাটা',
+      [STORE_PLAYBACK]: 'Continue Watching - সিনেমা ও সিরিজের প্লেব্যাক প্রগ্রেস',
+      [STORE_RECENT_STREAMS]: 'নেটওয়ার্ক স্ট্রিমের সর্বশেষ ১০টি ইনপুট URL',
+    };
+
+    const counts = await new Promise<{ countsMap: Record<string, number>; playlistKeys: string[] }>((resolve) => {
+      const tx = db.transaction(storeNames, 'readonly');
+      const countsMap: Record<string, number> = {
+        [STORE_PLAYLISTS]: 0,
+        [STORE_METADATA]: 0,
+        [STORE_PLAYBACK]: 0,
+        [STORE_RECENT_STREAMS]: 0,
+      };
+      let playlistKeys: string[] = [];
+
+      storeNames.forEach((sName) => {
+        const store = tx.objectStore(sName);
+        const countReq = store.count();
+        countReq.onsuccess = () => {
+          countsMap[sName] = countReq.result || 0;
+        };
+
+        if (sName === STORE_PLAYLISTS) {
+          const keysReq = store.getAllKeys();
+          keysReq.onsuccess = () => {
+            playlistKeys = (keysReq.result || []).map((k) => String(k));
+          };
+        }
+      });
+
+      tx.oncomplete = () => resolve({ countsMap, playlistKeys });
+      tx.onerror = () => resolve({ countsMap, playlistKeys });
+    });
+
+    stats.playlistKeys = counts.playlistKeys || [];
+    stats.stores = storeNames.map((sName) => ({
+      name: sName,
+      count: counts.countsMap[sName] || 0,
+      description: storeDescriptions[sName] || '',
+    }));
+
+    stats.totalRecords = stats.stores.reduce((acc, s) => acc + s.count, 0);
+
+    // Browser Storage Quota Estimate (Cache API + IndexedDB)
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        const usageBytes = estimate.usage || 0;
+        const quotaBytes = estimate.quota || 1;
+        const usagePercent = Math.min(100, Math.round((usageBytes / quotaBytes) * 10000) / 100);
+
+        stats.storageEstimate = {
+          usageBytes,
+          quotaBytes,
+          usagePercent,
+          usageFormatted: formatBytes(usageBytes),
+          quotaFormatted: formatBytes(quotaBytes),
+        };
+      } catch (err) {
+        console.warn('Storage estimate error:', err);
+      }
+    }
+
+    // Thumbnail CacheStorage count
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      try {
+        const cache = await caches.open('nesttube-thumbnails-v1');
+        const keys = await cache.keys();
+        stats.thumbnailCacheCount = keys.length;
+      } catch {
+        stats.thumbnailCacheCount = 0;
+      }
+    }
+
+    return stats;
+  } catch (err) {
+    console.warn('[IndexedDB] getIndexedDbHealthStats error:', err);
+    return stats;
+  }
+}
+
+/**
+ * Clears all IndexedDB stores and CacheStorage thumbnail cache to free up local storage
+ */
+export async function clearAllLocalCaches(): Promise<{ success: boolean; clearedStores: string[] }> {
+  const cleared: string[] = [];
+
+  try {
+    const db = await getDb();
+    const storeNames = [STORE_PLAYLISTS, STORE_METADATA, STORE_PLAYBACK, STORE_RECENT_STREAMS];
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(storeNames, 'readwrite');
+      storeNames.forEach((sName) => {
+        tx.objectStore(sName).clear();
+        cleared.push(sName);
+      });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    // Also clear Cache API thumbnails
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      try {
+        await caches.delete('nesttube-thumbnails-v1');
+        cleared.push('CacheStorage (nesttube-thumbnails-v1)');
+      } catch (e) {
+        console.warn('Failed to clear CacheStorage:', e);
+      }
+    }
+
+    return { success: true, clearedStores: cleared };
+  } catch (err) {
+    console.error('[IndexedDB] clearAllLocalCaches error:', err);
+    return { success: false, clearedStores: cleared };
+  }
+}
